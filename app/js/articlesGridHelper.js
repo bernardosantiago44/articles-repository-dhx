@@ -59,31 +59,6 @@ function renderTagsCellTemplate(tags) {
 }
 
 /**
- * Transform article data from JSON format to DHTMLX grid format
- * @param {Array<Article>} articles - Array of article objects
- * @returns {Object} DHTMLX grid data object
- */
-function transformArticlesDataForGrid(articles) {
-  const gridRows = articles.map(article => {
-    const statusConfig = getStatusConfiguration(article.status);
-    
-    return {
-      id: article.id,
-      data: [
-        0, // checkbox column (will be managed by grid)
-        renderStatusCellTemplate(article.status, statusConfig),
-        renderTitleCellTemplate(article.title, article.description),
-        renderTagsCellTemplate(article.tags),
-        article.updatedAt,
-        article.createdAt
-      ]
-    };
-  });
-  
-  return gridRows;
-}
-
-/**
  * Initialize and configure the articles grid
  * @param {Object} gridCell - DHTMLX layout cell where grid will be attached
  * @param {Array<Article>} articlesData - Array of article objects
@@ -106,7 +81,7 @@ function initializeArticlesGrid(gridCell, articlesData) {
     "Creado"
   ]);
   
-  // Define column types (ch=checkbox, ro=read-only, html=HTML content)
+  // Define column types (ch=checkbox, ro=read-only)
   articlesGrid.setColTypes("ch,ro,ro,ro,ro,ro");
   
   // Configure column resizing (checkbox and status not resizable)
@@ -135,24 +110,20 @@ function initializeArticlesGrid(gridCell, articlesData) {
   articlesGrid.enablePaging(true, 6, 3, 'articles_grid_recinfoArea');
   articlesGrid.setPagingSkin('bricks', 'dhx_skyblue');
   
-  // Transform and add the data
+  // Populate grid with article data
   articlesData.forEach(article => {
     const statusConfig = getStatusConfiguration(article.status);
     const rowId = article.id;
     
-    articlesGrid.addRow(rowId, [
-      0, // checkbox
-      article.status,
-      article.title,
-      article.tags.map(t => t.label).join(', '),
-      article.updatedAt,
-      article.createdAt
-    ]);
+    // Add row with initial data (necessary for DHTMLX grid structure)
+    articlesGrid.addRow(rowId, ['', '', '', '', '', '']);
     
-    // Set HTML content for cells that need custom rendering
+    // Set custom HTML content for each cell
     articlesGrid.cells(rowId, 1).setValue(renderStatusCellTemplate(article.status, statusConfig));
     articlesGrid.cells(rowId, 2).setValue(renderTitleCellTemplate(article.title, article.description));
     articlesGrid.cells(rowId, 3).setValue(renderTagsCellTemplate(article.tags));
+    articlesGrid.cells(rowId, 4).setValue(article.updatedAt);
+    articlesGrid.cells(rowId, 5).setValue(article.createdAt);
   });
   
   return articlesGrid;
@@ -160,8 +131,11 @@ function initializeArticlesGrid(gridCell, articlesData) {
 
 /**
  * Load articles data from JSON file
+ * Returns a Promise for modern async/await usage, but also supports callback pattern
+ * for compatibility with DHTMLX 5 event-driven architecture
+ * 
  * @param {string} jsonFilePath - Path to the JSON file
- * @param {Function} callback - Callback function to handle loaded data
+ * @param {Function} callback - Callback function (error, data) for compatibility
  */
 function loadArticlesDataFromJson(jsonFilePath, callback) {
   fetch(jsonFilePath)
