@@ -1,0 +1,98 @@
+{
+  "companies": [
+    { "id": "co-01", "name": "Acme Corporation" },
+    { "id": "co-02", "name": "Global Tech" }
+  ],
+  "articles": [
+    {
+      "id": "issue-0001",
+      "companyId": "co-01",
+      "title": "No se puede iniciar sesión en la cuenta después de cambiar la contraseña",
+      "description": "Descripción detallada del problema: No se puede iniciar sesión en la cuenta después de cambiar la contraseña. Este issue afecta múltiples áreas del sistema.",
+      "externalLink": "https://external-tracker.com/issue-0001",
+      "clientComments": "Cliente reportó: 'No se puede iniciar sesión...'. Mencionaron que esto ha estado afectando su flujo de trabajo.",
+      "status": "Abierto",
+      "tags": [
+        { "label": "Urgente", "color": "#ff4d4f" },
+        { "label": "Bug", "color": "#ffa940" }
+      ],
+      "createdAt": "2026-01-02",
+      "updatedAt": "2026-01-20"
+    },
+    {
+      "id": "issue-0002",
+      "companyId": "co-01",
+      "title": "La configuración de SSO no funciona con Okta",
+      "description": "Error al intentar sincronizar usuarios vía SAML.",
+      "externalLink": "https://external-tracker.com/issue-0002",
+      "clientComments": "El departamento de IT requiere asistencia técnica inmediata.",
+      "status": "En progreso",
+      "tags": [
+        { "label": "Documentation", "color": "#722ed1" },
+        { "label": "Feature", "color": "#1890ff" }
+      ],
+      "createdAt": "2025-07-27",
+      "updatedAt": "2026-01-18"
+    },
+    {
+      "id": "issue-0003",
+      "companyId": "co-02",
+      "title": "Solicitud de acceso al entorno sandbox",
+      "description": "El cliente necesita acceso al entorno de pruebas para realizar validaciones antes del despliegue en producción.",
+      "externalLink": "https://external-tracker.com/issue-0003",
+      "clientComments": "Solicitud urgente para el equipo de QA.",
+      "status": "Esperando",
+      "tags": [
+        { "label": "Access", "color": "#13c2c2" },
+        { "label": "High Priority", "color": "#ff4d4f" }
+      ],
+      "createdAt": "2026-01-08",
+      "updatedAt": "2026-01-19"
+    },
+    {
+      "id": "issue-0004",
+      "companyId": "co-02",
+      "title": "Error de permisos al agregar miembros al equipo",
+      "description": "Los administradores no pueden agregar nuevos miembros al equipo debido a un error de permisos en el sistema.",
+      "externalLink": "https://external-tracker.com/issue-0004",
+      "clientComments": "Este problema está bloqueando la incorporación de nuevos empleados.",
+      "status": "Cerrado",
+      "tags": [
+        { "label": "Bug", "color": "#ffa940" },
+        { "label": "Permissions", "color": "#722ed1" }
+      ],
+      "createdAt": "2025-12-10",
+      "updatedAt": "2026-01-15"
+    },
+    {
+      "id": "issue-0005",
+      "companyId": "co-01",
+      "title": "Integración con sistema de pagos no funciona",
+      "description": "La integración con Stripe está fallando intermitentemente, causando errores en las transacciones de los clientes.",
+      "externalLink": "https://external-tracker.com/issue-0005",
+      "clientComments": "Los clientes reportan errores al procesar pagos.",
+      "status": "Abierto",
+      "tags": [
+        { "label": "Critical", "color": "#ff4d4f" },
+        { "label": "Integration", "color": "#1890ff" },
+        { "label": "Bug", "color": "#ffa940" }
+      ],
+      "createdAt": "2026-01-15",
+      "updatedAt": "2026-01-21"
+    },
+    {
+      "id": "issue-0006",
+      "companyId": "co-02",
+      "title": "Actualización de documentación del API",
+      "description": "Necesitamos actualizar la documentación del API para reflejar los cambios recientes en los endpoints.",
+      "externalLink": "https://external-tracker.com/issue-0006",
+      "clientComments": "La documentación actual está desactualizada.",
+      "status": "En progreso",
+      "tags": [
+        { "label": "Documentation", "color": "#722ed1" }
+      ],
+      "createdAt": "2026-01-10",
+      "updatedAt": "2026-01-18"
+    }
+  ]
+}

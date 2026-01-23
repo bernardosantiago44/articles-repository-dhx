@@ -59,21 +59,20 @@ filters_form.fixSize(0,1);
 
 var grid = filters_grid_pager.cells('b');
 grid.hideHeader();
-var articles_grid = grid.attachGrid();
-articles_grid.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/dhxgrid_material/');
-articles_grid.enableMultiselect(true);
 
-articles_grid.setHeader(["","Estatus","Título","Modificado","Creado"]);
-articles_grid.setColTypes("ch,ro,ro,ro,ro");
-
-articles_grid.enableResizing('false,false,true,false,false');
-articles_grid.setColSorting('bool,str,str,str,str');
-articles_grid.setInitWidths('40,100,*,140,140');
-articles_grid.init();
-articles_grid.attachFooter(["<div id='articles_grid_recinfoArea' style='width:100%;height:100%'></div>","#cspan","#cspan","#cspan"],['height:25px;text-align:left;background:transparent;border-color:white;padding:0px;']);
-articles_grid.enablePaging(true, 6,  3,'articles_grid_recinfoArea');
-articles_grid.setPagingSkin('bricks','dhx_skyblue');
-articles_grid.load('./data/grid.xml', 'xml');
+// Load articles data and initialize grid
+loadArticlesDataFromJson('./data/articles-mock-data.json', function(error, mockData) {
+  if (error) {
+    console.error('Failed to load articles data:', error);
+    return;
+  }
+  
+  // Initialize the articles grid with the loaded data
+  var articles_grid = initializeArticlesGrid(grid, mockData.articles);
+  
+  // Store grid instance globally for potential future use
+  window.articlesGridInstance = articles_grid;
+});
 
 var pager = filters_grid_pager.cells('c');
 pager.setHeight(40);
