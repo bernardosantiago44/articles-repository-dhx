@@ -410,7 +410,7 @@ Articles Tab
 
 1. **Navigate to project directory:**
    ```bash
-   cd /home/runner/work/articles-repository-dhx/articles-repository-dhx
+   # Navigate to the project directory
    ```
 
 2. **Start HTTP server:**

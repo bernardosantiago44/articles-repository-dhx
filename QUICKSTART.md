@@ -4,7 +4,7 @@
 
 ### Step 1: Start the Server
 ```bash
-cd /home/runner/work/articles-repository-dhx/articles-repository-dhx
+# Navigate to the project directory first
 python3 -m http.server 8888
 ```
 
