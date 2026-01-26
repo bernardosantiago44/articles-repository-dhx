@@ -385,6 +385,79 @@ const ArticleService = (function() {
     });
   }
   
+  /**
+   * Bulk update tags for multiple articles
+   * This method handles both adding and removing tags from multiple articles at once.
+   * 
+   * @param {Array<string>} articleIds - Array of article IDs to update
+   * @param {string} tagId - The tag ID to add or remove
+   * @param {('add'|'remove')} action - Whether to 'add' or 'remove' the tag
+   * @returns {Promise<{status: string, updatedCount: number}>} Promise resolving to the result
+   */
+  function bulkUpdateTags(articleIds, tagId, action) {
+    return new Promise(function(resolve, reject) {
+      if (!articleIds || articleIds.length === 0) {
+        reject(new Error('No articles specified for bulk update'));
+        return;
+      }
+      
+      if (!tagId) {
+        reject(new Error('No tag specified for bulk update'));
+        return;
+      }
+      
+      if (action !== 'add' && action !== 'remove') {
+        reject(new Error('Invalid action: must be "add" or "remove"'));
+        return;
+      }
+      
+      console.log('Bulk updating tags: ' + action + ' tag ' + tagId + ' for articles:', articleIds);
+      
+      // Update in mock data cache
+      if (mockDataCache && mockDataCache.articles) {
+        var updatedCount = 0;
+        
+        articleIds.forEach(function(articleId) {
+          var articleIndex = mockDataCache.articles.findIndex(function(article) {
+            return article.id === articleId;
+          });
+          
+          if (articleIndex !== -1) {
+            var article = mockDataCache.articles[articleIndex];
+            
+            // Ensure tags is an array
+            if (!article.tags) {
+              article.tags = [];
+            }
+            
+            var tagIndex = article.tags.indexOf(tagId);
+            
+            if (action === 'add') {
+              // Add tag if not already present
+              if (tagIndex === -1) {
+                article.tags.push(tagId);
+                updatedCount++;
+              }
+            } else if (action === 'remove') {
+              // Remove tag if present
+              if (tagIndex !== -1) {
+                article.tags.splice(tagIndex, 1);
+                updatedCount++;
+              }
+            }
+            
+            // Update the updatedAt timestamp
+            article.updatedAt = new Date().toISOString().split('T')[0];
+          }
+        });
+        
+        resolve({ status: 'success', updatedCount: updatedCount });
+      } else {
+        reject(new Error('Mock data not loaded'));
+      }
+    });
+  }
+  
   // Public API
   return {
     getCompanies: getCompanies,
@@ -399,6 +472,7 @@ const ArticleService = (function() {
     getCompanyById: getCompanyById,
     createArticle: createArticle,
     updateArticle: updateArticle,
+    bulkUpdateTags: bulkUpdateTags,  // Bulk update tags for multiple articles
     clearCache: clearCache,  // Expose cache clearing for development/testing
     clearTagCache: clearTagCache  // Expose tag cache clearing
   };
