@@ -33,16 +33,11 @@ const ArticleDetailUI = (function() {
     const label = statusConfig.label || status;
     
     return `
-      <span style="
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 4px;
-        background-color: ${backgroundColor};
-        color: white;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-      ">${label}</span>
+      <span
+        class="inline-block px-3 py-1 rounded bg-[${backgroundColor}] text-white text-xs font-semibold uppercase"
+      >
+        ${label}
+      </span>
     `;
   }
   

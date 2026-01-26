@@ -28,15 +28,10 @@ function renderStatusCellTemplate(statusValue, statusConfig) {
  * @returns {string} HTML string for title cell
  */
 function renderTitleCellTemplate(title, description) {
-  // Truncate description to 80 characters for preview
-  const truncatedDescription = description.length > 80 
-    ? description.substring(0, 80) + '...' 
-    : description;
-  
   return `
     <div style="padding: 4px 0;">
       <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${title}</div>
-      <div style="font-size: 12px; color: #8c8c8c; line-height: 1.4;">${truncatedDescription}</div>
+      <div style="font-size: 12px; color: #8c8c8c; line-height: 1.4;">${description}</div>
     </div>
   `;
 }
