@@ -45,6 +45,10 @@ var ArticleFormUI = (function() {
     ];
   }
   
+  // Form window dimensions
+  var FORM_WINDOW_WIDTH = 600;
+  var FORM_WINDOW_HEIGHT = 650;
+  
   /**
    * Get available tag options with colors
    * @returns {Array} Array of tag objects {label, color}
@@ -57,6 +61,27 @@ var ArticleFormUI = (function() {
       { label: 'Feature', color: '#1890ff' },
       { label: 'Documentation', color: '#722ed1' }
     ];
+  }
+  
+  /**
+   * Generate checkbox name from tag label
+   * @param {string} tagLabel - Tag label
+   * @returns {string} Checkbox name
+   */
+  function getTagCheckboxName(tagLabel) {
+    return 'tag_' + tagLabel.replace(/\s+/g, '_').toLowerCase();
+  }
+  
+  /**
+   * Generate tag checkbox label HTML with color indicator
+   * @param {string} tagLabel - Tag label
+   * @param {string} tagColor - Tag color hex code
+   * @returns {string} HTML string for checkbox label
+   */
+  function generateTagLabelHtml(tagLabel, tagColor) {
+    return '<span style="display: inline-flex; align-items: center; gap: 6px;">' +
+           '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ' + tagColor + ';"></span>' +
+           tagLabel + '</span>';
   }
   
   /**
@@ -73,8 +98,8 @@ var ArticleFormUI = (function() {
     availableTags.forEach(function(tag, index) {
       tagCheckboxItems.push({
         type: 'checkbox',
-        name: 'tag_' + tag.label.replace(/\s+/g, '_').toLowerCase(),
-        label: '<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ' + tag.color + ';"></span>' + tag.label + '</span>',
+        name: getTagCheckboxName(tag.label),
+        label: generateTagLabelHtml(tag.label, tag.color),
         labelWidth: 'auto',
         style: 'margin-bottom: 8px;'
       });
@@ -213,8 +238,8 @@ var ArticleFormUI = (function() {
     // Window title based on mode
     var windowTitle = mode === 'create' ? 'Nuevo Artículo' : 'Editando: ' + articleId;
     
-    // Create and configure window (increased height to 650 to accommodate tags)
-    var formWindow = dhxWins.createWindow('article_form_window', 0, 0, 600, 650);
+    // Create and configure window (increased height to accommodate tags)
+    var formWindow = dhxWins.createWindow('article_form_window', 0, 0, FORM_WINDOW_WIDTH, FORM_WINDOW_HEIGHT);
     formWindow.setText(windowTitle);
     formWindow.centerOnScreen();
     formWindow.setModal(true);
@@ -290,7 +315,7 @@ var ArticleFormUI = (function() {
     var tags = [];
     var availableTags = getAvailableTags();
     availableTags.forEach(function(tag) {
-      var checkboxName = 'tag_' + tag.label.replace(/\s+/g, '_').toLowerCase();
+      var checkboxName = getTagCheckboxName(tag.label);
       var isChecked = formState.articleForm.isItemChecked(checkboxName);
       if (isChecked) {
         tags.push({
@@ -469,7 +494,7 @@ var ArticleFormUI = (function() {
     if (articleData.tags && Array.isArray(articleData.tags)) {
       var availableTags = getAvailableTags();
       availableTags.forEach(function(tag) {
-        var checkboxName = 'tag_' + tag.label.replace(/\s+/g, '_').toLowerCase();
+        var checkboxName = getTagCheckboxName(tag.label);
         var isTagSelected = articleData.tags.some(function(articleTag) {
           return articleTag.label === tag.label;
         });
