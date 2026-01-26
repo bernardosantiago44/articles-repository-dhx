@@ -106,7 +106,7 @@ const ArticleDetailUI = (function() {
         font-weight: 500;
         transition: background-color 0.2s;
       " onmouseover="this.style.backgroundColor='#40a9ff'" onmouseout="this.style.backgroundColor='#1890ff'">
-        🔗 Abrir enlace externo
+        Abrir enlace externo
       </a>
     `;
   }
@@ -173,7 +173,7 @@ const ArticleDetailUI = (function() {
         cursor: pointer;
         transition: background-color 0.2s;
       " onmouseover="this.style.backgroundColor='#73d13d'" onmouseout="this.style.backgroundColor='#52c41a'">
-        ✏️ Editar Artículo
+        Editar Artículo
       </button>
     ` : '';
     

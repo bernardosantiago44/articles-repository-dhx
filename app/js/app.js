@@ -58,10 +58,10 @@ header_trailing.hideHeader();
 header_trailing.fixSize(1, 0);
 
 var header_toolbar = header_trailing.attachToolbar();
-header_toolbar.setIconsPath('./codebase/imgs/');
+header_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
 header_toolbar.addButton('new_article', 1, 'Nuevo artículo');
 header_toolbar.addSeparator('sep1', 2);
-header_toolbar.addButtonTwoState('toggle_user_role', 3, 'Cambiar a Usuario Regular');
+header_toolbar.addButton('toggle_user_role', 3, 'Cambiar a Usuario Regular');
 header_toolbar.setItemToolTip('toggle_user_role', 'Cambiar entre Admin y Usuario Regular');
 
 // Toolbar Click Handler
@@ -88,7 +88,7 @@ var articles = tabbar.cells('articles');
 articles.setActive();
 
 // Create layout for articles tab with sidebar: Filters (top), Grid (center), Sidebar (right)
-var articles_layout = articles.attachLayout('3E');
+var articles_layout = articles.attachLayout('2E');
 
 // ============================================================================
 // Filters Section (Top)
@@ -130,21 +130,11 @@ grid_cell.hideHeader();
 var sidebar_cell = grid_sidebar_split.cells('b');
 sidebar_cell.setWidth('350');
 sidebar_cell.hideHeader();
-sidebar_cell.fixSize(1, 0);
+sidebar_cell.fixSize(0, 0);
 appState.sidebarCell = sidebar_cell;
 
 // Show empty state initially
 sidebar_cell.attachHTMLString(ArticleDetailUI.renderEmptyState());
-
-// ============================================================================
-// Pager Section (Bottom - currently hidden but structure maintained)
-// ============================================================================
-
-var pager = articles_layout.cells('c');
-pager.setHeight(40);
-pager.hideHeader();
-pager.fixSize(0, 1);
-pager.collapse(); // Hide pager for now
 
 // ============================================================================
 // Other Tabs (Placeholder)
