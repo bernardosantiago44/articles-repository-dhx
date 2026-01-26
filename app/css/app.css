@@ -61,6 +61,16 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Form checkbox spacing for horizontal layout */
+.dhtmlxForm_dhx_web .dhxform_chkbx {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.dhtmlxForm_dhx_web .dhxform_chkbx label {
+  white-space: nowrap;
+}
+
 /* Sidebar custom scrollbar styling */
 /* WebKit browsers (Chrome, Safari, Edge) */
 .dhxlayout_cont::-webkit-scrollbar {

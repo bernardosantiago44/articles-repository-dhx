@@ -46,7 +46,7 @@ var ArticleFormUI = (function() {
   }
   
   // Form window dimensions
-  var FORM_WINDOW_WIDTH = 600;
+  var FORM_WINDOW_WIDTH = 750;
   var FORM_WINDOW_HEIGHT = 650;
   
   /**
@@ -93,7 +93,7 @@ var ArticleFormUI = (function() {
     var buttonLabel = mode === 'create' ? 'Crear Artículo' : 'Guardar Cambios';
     var availableTags = getAvailableTags();
     
-    // Build checkbox items for tags
+    // Build checkbox items for tags - display horizontally
     var tagCheckboxItems = [];
     availableTags.forEach(function(tag, index) {
       tagCheckboxItems.push({
@@ -101,8 +101,16 @@ var ArticleFormUI = (function() {
         name: getTagCheckboxName(tag.label),
         label: generateTagLabelHtml(tag.label, tag.color),
         labelWidth: 'auto',
-        style: 'margin-bottom: 8px;'
+        inputWidth: 'auto'
       });
+      
+      // Add newcolumn after each checkbox except the last one to display horizontally
+      if (index < availableTags.length - 1) {
+        tagCheckboxItems.push({
+          type: 'newcolumn',
+          offset: 10
+        });
+      }
     });
     
     return [
