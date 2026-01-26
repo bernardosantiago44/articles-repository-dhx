@@ -4,6 +4,7 @@
  * 
  * Dependencies:
  * - dataModels.js (must be loaded before this module for getStatusConfiguration function)
+ * - tagBadge.js (must be loaded before this module for renderTagBadges function)
  */
 
 const ArticleDetailUI = (function() {
@@ -39,34 +40,6 @@ const ArticleDetailUI = (function() {
         ${label}
       </span>
     `;
-  }
-  
-  /**
-   * Render tag badges HTML
-   * @param {Array<{label: string, color: string}>} tags - Array of tags
-   * @returns {string} HTML for tag badges container
-   */
-  function renderTagBadges(tags) {
-    if (!tags || tags.length === 0) {
-      return '<div style="font-size: 13px; color: #8c8c8c; font-style: italic;">Sin etiquetas</div>';
-    }
-    
-    const tagsHtml = tags.map(tag => {
-      return `
-        <span style="
-          display: inline-block;
-          padding: 4px 10px;
-          margin: 4px 4px 4px 0;
-          border-radius: 4px;
-          background-color: ${tag.color};
-          color: white;
-          font-size: 12px;
-          font-weight: 500;
-        ">${tag.label}</span>
-      `;
-    }).join('');
-    
-    return `<div style="display: flex; flex-wrap: wrap; margin-top: 8px;">${tagsHtml}</div>`;
   }
   
   /**
