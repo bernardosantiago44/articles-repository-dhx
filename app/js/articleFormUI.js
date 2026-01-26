@@ -46,12 +46,39 @@ var ArticleFormUI = (function() {
   }
   
   /**
+   * Get available tag options with colors
+   * @returns {Array} Array of tag objects {label, color}
+   */
+  function getAvailableTags() {
+    // Define standard tags available across companies
+    return [
+      { label: 'Urgente', color: '#ff4d4f' },
+      { label: 'Bug', color: '#ffa940' },
+      { label: 'Feature', color: '#1890ff' },
+      { label: 'Documentation', color: '#722ed1' }
+    ];
+  }
+  
+  /**
    * Get the form structure configuration for dhtmlXForm
    * @param {string} mode - 'create' or 'edit'
    * @returns {Array} Form structure configuration
    */
   function getFormStructure(mode) {
     var buttonLabel = mode === 'create' ? 'Crear Artículo' : 'Guardar Cambios';
+    var availableTags = getAvailableTags();
+    
+    // Build checkbox items for tags
+    var tagCheckboxItems = [];
+    availableTags.forEach(function(tag, index) {
+      tagCheckboxItems.push({
+        type: 'checkbox',
+        name: 'tag_' + tag.label.replace(/\s+/g, '_').toLowerCase(),
+        label: '<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ' + tag.color + ';"></span>' + tag.label + '</span>',
+        labelWidth: 'auto',
+        style: 'margin-bottom: 8px;'
+      });
+    });
     
     return [
       {
@@ -85,7 +112,7 @@ var ArticleFormUI = (function() {
           {
             type: 'combo',
             name: 'status',
-            inputWidth: 200,
+            inputWidth: '100%',
             options: getStatusOptions().map(function(opt, index) {
               return {
                 value: opt.value,
@@ -103,7 +130,7 @@ var ArticleFormUI = (function() {
             type: 'input',
             name: 'description',
             required: true,
-            rows: 5,
+            rows: 8,
             inputWidth: '100%',
             style: 'margin-bottom: 16px;'
           },
@@ -124,9 +151,26 @@ var ArticleFormUI = (function() {
           {
             type: 'input',
             name: 'clientComments',
-            rows: 4,
+            rows: 6,
             inputWidth: '100%',
-            style: 'margin-bottom: 24px;'
+            style: 'margin-bottom: 16px;'
+          },
+          {
+            type: 'label',
+            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Etiquetas</div>'
+          },
+          {
+            type: 'block',
+            width: '100%',
+            blockOffset: 0,
+            list: tagCheckboxItems.concat([
+              {
+                type: 'container',
+                name: 'tags_container',
+                inputWidth: '100%',
+                style: 'margin-bottom: 24px;'
+              }
+            ])
           },
           {
             type: 'block',
@@ -169,8 +213,8 @@ var ArticleFormUI = (function() {
     // Window title based on mode
     var windowTitle = mode === 'create' ? 'Nuevo Artículo' : 'Editando: ' + articleId;
     
-    // Create and configure window
-    var formWindow = dhxWins.createWindow('article_form_window', 0, 0, 500, 550);
+    // Create and configure window (increased height to 650 to accommodate tags)
+    var formWindow = dhxWins.createWindow('article_form_window', 0, 0, 600, 650);
     formWindow.setText(windowTitle);
     formWindow.centerOnScreen();
     formWindow.setModal(true);
@@ -242,6 +286,20 @@ var ArticleFormUI = (function() {
       return null;
     }
     
+    // Collect checked tags
+    var tags = [];
+    var availableTags = getAvailableTags();
+    availableTags.forEach(function(tag) {
+      var checkboxName = 'tag_' + tag.label.replace(/\s+/g, '_').toLowerCase();
+      var isChecked = formState.articleForm.isItemChecked(checkboxName);
+      if (isChecked) {
+        tags.push({
+          label: tag.label,
+          color: tag.color
+        });
+      }
+    });
+    
     return {
       title: formState.articleForm.getItemValue('title') || '',
       description: formState.articleForm.getItemValue('description') || '',
@@ -249,7 +307,7 @@ var ArticleFormUI = (function() {
       externalLink: formState.articleForm.getItemValue('externalLink') || '',
       clientComments: formState.articleForm.getItemValue('clientComments') || '',
       companyId: formState.companyId,
-      tags: []  // Tags editing not implemented yet, preserve existing or empty
+      tags: tags
     };
   }
   
@@ -291,12 +349,9 @@ var ArticleFormUI = (function() {
           });
         });
     } else if (formState.currentMode === 'edit') {
-      // Preserve existing tags when editing
+      // Update article with new data (including tags from checkboxes)
       ArticleService.getArticleById(formState.articleId)
         .then(function(existingArticle) {
-          if (existingArticle && existingArticle.tags) {
-            formData.tags = existingArticle.tags;
-          }
           formData.createdAt = existingArticle ? existingArticle.createdAt : null;
           
           return ArticleService.updateArticle(formState.articleId, formData);
@@ -408,6 +463,20 @@ var ArticleFormUI = (function() {
       if (statusIndex !== -1) {
         statusCombo.selectOption(statusIndex, true, true);
       }
+    }
+    
+    // Pre-check tags based on article's existing tags
+    if (articleData.tags && Array.isArray(articleData.tags)) {
+      var availableTags = getAvailableTags();
+      availableTags.forEach(function(tag) {
+        var checkboxName = 'tag_' + tag.label.replace(/\s+/g, '_').toLowerCase();
+        var isTagSelected = articleData.tags.some(function(articleTag) {
+          return articleTag.label === tag.label;
+        });
+        if (isTagSelected) {
+          formState.articleForm.setItemValue(checkboxName, true);
+        }
+      });
     }
   }
   

@@ -203,6 +203,9 @@ function initializeAdminView() {
  * Initialize view for Regular users
  */
 function initializeRegularUserView() {
+  // Hide the "Nuevo artículo" button for regular users
+  header_toolbar.hideItem('new_article');
+  
   // Regular users have a fixed company
   appState.selectedCompanyId = UserService.getCurrentUserCompanyId();
   

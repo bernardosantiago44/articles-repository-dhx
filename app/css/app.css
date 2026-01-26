@@ -45,6 +45,22 @@ html, body {
   padding-bottom: 8px !important;
 }
 
+/* Form textarea resizing */
+.dhtmlxForm_dhx_web textarea {
+  resize: vertical !important;
+  min-height: 80px;
+}
+
+/* Form input widths - ensure all inputs use full width */
+.dhtmlxForm_dhx_web input[type="text"],
+.dhtmlxForm_dhx_web textarea,
+.dhtmlxForm_dhx_web select,
+.dhtmlxForm_dhx_web .dhxform_txt_label2,
+.dhtmlxForm_dhx_web .dhxform_combo {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
 /* Sidebar custom scrollbar styling */
 /* WebKit browsers (Chrome, Safari, Edge) */
 .dhxlayout_cont::-webkit-scrollbar {
