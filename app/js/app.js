@@ -10,7 +10,7 @@
  * - articlesGridHelper.js
  */
 
-window.dhx4.skin = 'dhx_web';
+window.dhx4.skin = 'material';
 
 // ============================================================================
 // Global State Management
