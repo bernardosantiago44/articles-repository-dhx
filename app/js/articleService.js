@@ -315,6 +315,39 @@ const ArticleService = (function() {
   }
   
   /**
+   * Get multiple articles by their IDs (bulk fetch)
+   * More efficient than calling getArticleById multiple times
+   * @param {Array<string>} articleIds - Array of article IDs
+   * @returns {Promise<Array<Article>>} Promise resolving to array of articles (with resolved tags)
+   */
+  function getArticlesByIds(articleIds) {
+    if (!articleIds || articleIds.length === 0) {
+      return Promise.resolve([]);
+    }
+    
+    return loadMockData().then(data => {
+      const articles = data.articles || [];
+      const tags = data.tags || [];
+      
+      // Find all articles that match the requested IDs
+      const matchedArticles = articles.filter(article => articleIds.indexOf(article.id) !== -1);
+      
+      // Resolve tags for each article
+      return matchedArticles.map(article => {
+        if (article.tags && Array.isArray(article.tags)) {
+          const resolvedTags = article.tags.map(tagId => {
+            const tag = tags.find(t => t.id === tagId);
+            return tag || null;
+          }).filter(tag => tag !== null);
+          
+          return Object.assign({}, article, { tags: resolvedTags });
+        }
+        return article;
+      });
+    });
+  }
+  
+  /**
    * Get company by ID
    * @param {string} companyId - The company ID
    * @returns {Promise<Company|null>} Promise resolving to company object or null
@@ -469,6 +502,7 @@ const ArticleService = (function() {
     getTagsByCompany: getTagsByCompany,  // Legacy method for backward compatibility
     getArticles: getArticles,
     getArticleById: getArticleById,
+    getArticlesByIds: getArticlesByIds,  // Bulk fetch for multiple articles
     getCompanyById: getCompanyById,
     createArticle: createArticle,
     updateArticle: updateArticle,

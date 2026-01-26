@@ -362,6 +362,7 @@ var BulkTagEditorUI = (function() {
   
   /**
    * Refresh the articles data after an update
+   * Uses bulk fetch for better performance
    * @returns {Promise} Promise that resolves when data is refreshed
    */
   function refreshArticlesData() {
@@ -369,12 +370,8 @@ var BulkTagEditorUI = (function() {
       return article.id;
     });
     
-    // Fetch updated articles
-    var promises = articleIds.map(function(articleId) {
-      return ArticleService.getArticleById(articleId);
-    });
-    
-    return Promise.all(promises)
+    // Fetch updated articles using bulk method
+    return ArticleService.getArticlesByIds(articleIds)
       .then(function(updatedArticles) {
         // Filter out any null results
         bulkTagEditorState.selectedArticles = updatedArticles.filter(function(article) {

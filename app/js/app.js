@@ -13,6 +13,16 @@
 window.dhx4.skin = 'material';
 
 // ============================================================================
+// Layout Configuration Constants
+// ============================================================================
+
+var LAYOUT_CONFIG = {
+  HEADER_HEIGHT: '80',
+  FILTERS_SECTION_HEIGHT: '120',
+  SIDEBAR_WIDTH: '350'
+};
+
+// ============================================================================
 // Global State Management
 // ============================================================================
 
@@ -39,9 +49,9 @@ var appState = {
 
 var main_layout = new dhtmlXLayoutObject(document.body, '2E');
 
-// Header Section (80px height)
+// Header Section
 var header = main_layout.cells('a');
-header.setHeight('80');
+header.setHeight(LAYOUT_CONFIG.HEADER_HEIGHT);
 header.fixSize(0, 1);
 
 var header_stack = header.attachLayout('2U');
@@ -102,7 +112,7 @@ var articles_layout = articles.attachLayout('2E');
 // ============================================================================
 
 var filters_container = articles_layout.cells('a');
-filters_container.setHeight('120');
+filters_container.setHeight(LAYOUT_CONFIG.FILTERS_SECTION_HEIGHT);
 filters_container.hideHeader();
 filters_container.fixSize(0, 1);
 
@@ -143,9 +153,9 @@ var grid_sidebar_split = grid_sidebar_layout.attachLayout('2U');
 var grid_cell = grid_sidebar_split.cells('a');
 grid_cell.hideHeader();
 
-// Sidebar Cell (300-400px width)
+// Sidebar Cell
 var sidebar_cell = grid_sidebar_split.cells('b');
-sidebar_cell.setWidth('350');
+sidebar_cell.setWidth(LAYOUT_CONFIG.SIDEBAR_WIDTH);
 sidebar_cell.hideHeader();
 sidebar_cell.fixSize(0, 0);
 appState.sidebarCell = sidebar_cell;
@@ -799,12 +809,8 @@ function openBulkTagEditor() {
   // Convert to array (getSelectedRowId returns comma-separated string for multiselect)
   var selectedIdsArray = selectedIds.split(',');
   
-  // Fetch the full article objects for selected IDs
-  var articlePromises = selectedIdsArray.map(function(articleId) {
-    return ArticleService.getArticleById(articleId);
-  });
-  
-  Promise.all(articlePromises)
+  // Fetch the full article objects for selected IDs using bulk fetch
+  ArticleService.getArticlesByIds(selectedIdsArray)
     .then(function(selectedArticles) {
       // Filter out any null results
       var validArticles = selectedArticles.filter(function(article) {
