@@ -53,7 +53,6 @@ header_leading.attachHTMLString(`
 
 // Header Right - Toolbar
 var header_trailing = header_stack.cells('b');
-header_trailing.setWidth('400');
 header_trailing.hideHeader();
 header_trailing.fixSize(1, 0);
 
@@ -95,22 +94,9 @@ var articles_layout = articles.attachLayout('2E');
 // ============================================================================
 
 var filters_container = articles_layout.cells('a');
-filters_container.setHeight('120');
+filters_container.setHeight('60');
 filters_container.hideHeader();
 filters_container.fixSize(0, 1);
-
-var filters_layout = filters_container.attachLayout('2E');
-
-// Filters Toolbar Area
-var filters_toolbar = filters_layout.cells('a');
-filters_toolbar.setHeight('38');
-filters_toolbar.hideHeader();
-filters_toolbar.fixSize(0, 1);
-
-// Filters Form Area
-var filters_form_cell = filters_layout.cells('b');
-filters_form_cell.hideHeader();
-filters_form_cell.fixSize(0, 1);
 
 // ============================================================================
 // Grid Section (Center) and Sidebar (Right)
@@ -118,6 +104,18 @@ filters_form_cell.fixSize(0, 1);
 
 var grid_sidebar_layout = articles_layout.cells('b');
 grid_sidebar_layout.hideHeader();
+
+// Grid Toolbar Area (various actions)
+var grid_toolbar = grid_sidebar_layout.attachToolbar();
+grid_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
+grid_toolbar.addButton('manage_tags', 1, 'Administrar Etiquetas');
+
+grid_toolbar.setItemToolTip('manage_tags', 'Refrescar la lista de artículos');
+grid_toolbar.attachEvent('onClick', function(id) {
+  if (id === 'manage_tags') {
+    openTagManager();
+  }
+});
 
 // Split into grid and sidebar
 var grid_sidebar_split = grid_sidebar_layout.attachLayout('2U');
@@ -205,6 +203,8 @@ function initializeAdminView() {
 function initializeRegularUserView() {
   // Hide the "Nuevo artículo" button for regular users
   header_toolbar.hideItem('new_article');
+  // Hide the "Administrar Etiquetas" button for regular users
+  header_toolbar.hideItem('manage_tags');
   
   // Regular users have a fixed company
   appState.selectedCompanyId = UserService.getCurrentUserCompanyId();
@@ -219,7 +219,7 @@ function initializeRegularUserView() {
   }
   
   // Hide company picker for regular users
-  filters_form_cell.attachHTMLString('<div style="padding: 20px; font-size: 14px; color: #595959;">Vista de usuario regular</div>');
+  filters_container.attachHTMLString('<div style="padding: 20px; font-size: 14px; color: #595959;">Vista de usuario regular</div>');
   
   // Load articles for user's company
   loadArticlesForCompany(appState.selectedCompanyId)
@@ -268,7 +268,7 @@ function createCompanyCombo(companies) {
     }
   ];
   
-  var filters_form = filters_form_cell.attachForm(formData);
+  var filters_form = filters_container.attachForm(formData);
   appState.companyCombo = filters_form.getCombo('company');
   
   // Attach event listener for company change
@@ -286,6 +286,9 @@ function onCompanyChange(companyId) {
   
   appState.selectedCompanyId = companyId;
   UserService.setCurrentCompanyForAdmin(companyId);
+  
+  // Clear tag cache when company changes
+  ArticleService.clearTagCache();
   
   // Clear current grid
   if (appState.articlesGrid) {
@@ -419,6 +422,38 @@ function toggleUserRole() {
         }
       }
     }
+  });
+}
+
+/**
+ * Open the Tag Manager for the currently selected company (Admin only)
+ */
+function openTagManager() {
+  // Check if a company is selected
+  if (!appState.selectedCompanyId) {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'Por favor seleccione una empresa primero.'
+    });
+    return;
+  }
+  
+  // Check if user is admin
+  if (!UserService.isAdministrator()) {
+    dhtmlx.alert({
+      title: 'Acceso denegado',
+      text: 'Solo los administradores pueden gestionar etiquetas.'
+    });
+    return;
+  }
+  
+  // Open the tag manager
+  TagManagerUI.openTagManager(appState.selectedCompanyId, function() {
+    // Callback when tags are changed - reload articles to reflect changes
+    loadArticlesForCompany(appState.selectedCompanyId)
+      .catch(function(error) {
+        console.error('Error reloading articles after tag changes:', error);
+      });
   });
 }
 

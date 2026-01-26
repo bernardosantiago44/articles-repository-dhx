@@ -18,7 +18,8 @@ var ArticleFormUI = (function() {
     articleWindow: null,        // DHTMLX Window instance
     articleForm: null,          // DHTMLX Form instance
     companyId: null,            // Company ID for new articles
-    onSaveCallback: null        // Callback function after save
+    onSaveCallback: null,       // Callback function after save
+    selectedTags: []            // Selected tags for the article
   };
   
   /**
@@ -50,17 +51,14 @@ var ArticleFormUI = (function() {
   var FORM_WINDOW_HEIGHT = 650;
   
   /**
-   * Get available tag options with colors
+   * Get available tag options with colors (LEGACY - for backward compatibility)
    * @returns {Array} Array of tag objects {label, color}
+   * @deprecated Tags are now managed dynamically through TagPickerUI
    */
   function getAvailableTags() {
-    // Define standard tags available across companies
-    return [
-      { label: 'Urgente', color: '#ff4d4f' },
-      { label: 'Bug', color: '#ffa940' },
-      { label: 'Feature', color: '#1890ff' },
-      { label: 'Documentation', color: '#722ed1' }
-    ];
+    // This function is kept for backward compatibility but is no longer used
+    // Tags are now fetched dynamically from ArticleService.getTags()
+    return [];
   }
   
   /**
@@ -91,27 +89,6 @@ var ArticleFormUI = (function() {
    */
   function getFormStructure(mode) {
     var buttonLabel = mode === 'create' ? 'Crear Artículo' : 'Guardar Cambios';
-    var availableTags = getAvailableTags();
-    
-    // Build checkbox items for tags - display horizontally
-    var tagCheckboxItems = [];
-    availableTags.forEach(function(tag, index) {
-      tagCheckboxItems.push({
-        type: 'checkbox',
-        name: getTagCheckboxName(tag.label),
-        label: generateTagLabelHtml(tag.label, tag.color),
-        labelWidth: 'auto',
-        inputWidth: 'auto'
-      });
-      
-      // Add newcolumn after each checkbox except the last one to display horizontally
-      if (index < availableTags.length - 1) {
-        tagCheckboxItems.push({
-          type: 'newcolumn',
-          offset: 10
-        });
-      }
-    });
     
     return [
       {
@@ -193,17 +170,10 @@ var ArticleFormUI = (function() {
             label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Etiquetas</div>'
           },
           {
-            type: 'block',
-            width: '100%',
-            blockOffset: 0,
-            list: tagCheckboxItems.concat([
-              {
-                type: 'container',
-                name: 'tags_container',
-                inputWidth: '100%',
-                style: 'margin-bottom: 24px;'
-              }
-            ])
+            type: 'container',
+            name: 'tags_container',
+            inputWidth: '100%',
+            style: 'margin-bottom: 16px;'
           },
           {
             type: 'block',
@@ -276,7 +246,146 @@ var ArticleFormUI = (function() {
       }
     });
     
+    // Initialize tag container with click handler
+    // Using requestAnimationFrame ensures the form DOM is rendered before we attach handlers
+    requestAnimationFrame(function() {
+      initializeTagContainer();
+    });
+    
     return form;
+  }
+  
+  /**
+   * Initialize the tag container with custom UI
+   */
+  function initializeTagContainer() {
+    if (!formState.articleForm) return;
+    
+    var container = formState.articleForm.getContainer('tags_container');
+    if (!container) return;
+    
+    // Create custom tag container HTML
+    var containerHtml = document.createElement('div');
+    containerHtml.className = 'tag-container-wrapper';
+    containerHtml.style.border = '1px solid #d9d9d9';
+    containerHtml.style.borderRadius = '4px';
+    containerHtml.style.padding = '12px';
+    containerHtml.style.minHeight = '60px';
+    containerHtml.style.cursor = 'pointer';
+    containerHtml.style.transition = 'border-color 0.3s';
+    
+    containerHtml.innerHTML = `
+      <div id="selected-tags-display" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px;">
+        ${renderSelectedTagsBadges()}
+      </div>
+      <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c;">
+        Haz clic para seleccionar etiquetas
+      </div>
+    `;
+    
+    // Add hover effect
+    containerHtml.addEventListener('mouseenter', function() {
+      containerHtml.style.borderColor = '#40a9ff';
+    });
+    
+    containerHtml.addEventListener('mouseleave', function() {
+      containerHtml.style.borderColor = '#d9d9d9';
+    });
+    
+    // Add click handler to open tag picker
+    containerHtml.addEventListener('click', function() {
+      openTagPickerForForm();
+    });
+    
+    // Clear the container and add our custom HTML
+    container.innerHTML = '';
+    container.appendChild(containerHtml);
+  }
+  
+  /**
+   * Render selected tags as badges
+   * @returns {string} HTML string for tag badges
+   */
+  function renderSelectedTagsBadges() {
+    if (formState.selectedTags.length === 0) {
+      return '<span style="color: #bfbfbf; font-size: 14px;">Ninguna etiqueta seleccionada</span>';
+    }
+    
+    return formState.selectedTags.map(function(tag) {
+      return `
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
+              style="background-color: ${tag.color}; display: inline-flex; align-items: center; gap: 6px;">
+          ${escapeHtml(tag.name)}
+          <button class="tag-remove-btn" data-tag-id="${escapeHtml(tag.id)}" 
+                  style="background: rgba(0,0,0,0.2); border: none; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; color: white; font-size: 12px; line-height: 1;"
+                  title="Eliminar etiqueta">×</button>
+        </span>
+      `;
+    }).join('');
+  }
+  
+  /**
+   * Update the tag badges display
+   */
+  function updateTagBadgesDisplay() {
+    var display = document.getElementById('selected-tags-display');
+    if (display) {
+      display.innerHTML = renderSelectedTagsBadges();
+      
+      // Attach event listeners to remove buttons (safer than inline onclick)
+      var removeButtons = display.querySelectorAll('.tag-remove-btn');
+      removeButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();  // Prevent triggering the container click
+          var tagId = btn.getAttribute('data-tag-id');
+          removeTag(tagId);
+        });
+      });
+    }
+  }
+  
+  /**
+   * Open the tag picker for the form
+   */
+  function openTagPickerForForm() {
+    if (!formState.companyId) {
+      dhtmlx.alert({
+        title: 'Error',
+        text: 'No se pudo cargar las etiquetas'
+      });
+      return;
+    }
+    
+    // Get currently selected tag IDs
+    var selectedTagIds = formState.selectedTags.map(function(tag) { return tag.id; });
+    
+    // Open the tag picker
+    TagPickerUI.openTagPicker(formState.companyId, selectedTagIds, function(selectedTags) {
+      formState.selectedTags = selectedTags;
+      updateTagBadgesDisplay();
+    });
+  }
+  
+  /**
+   * Remove a tag from the selection
+   * @param {string} tagId - Tag ID to remove
+   */
+  function removeTag(tagId) {
+    formState.selectedTags = formState.selectedTags.filter(function(tag) {
+      return tag.id !== tagId;
+    });
+    updateTagBadgesDisplay();
+  }
+  
+  /**
+   * Escape HTML to prevent XSS
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped text
+   */
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
   }
   
   /**
@@ -319,19 +428,11 @@ var ArticleFormUI = (function() {
       return null;
     }
     
-    // Collect checked tags
-    var tags = [];
-    var availableTags = getAvailableTags();
-    availableTags.forEach(function(tag) {
-      var checkboxName = getTagCheckboxName(tag.label);
-      var isChecked = formState.articleForm.isItemChecked(checkboxName);
-      if (isChecked) {
-        tags.push({
-          label: tag.label,
-          color: tag.color
-        });
-      }
-    });
+    // Convert selected tags to tag IDs for storage
+    // Filter out any tags without IDs (for backward compatibility)
+    var tagIds = formState.selectedTags
+      .filter(function(tag) { return tag && tag.id; })
+      .map(function(tag) { return tag.id; });
     
     return {
       title: formState.articleForm.getItemValue('title') || '',
@@ -340,7 +441,7 @@ var ArticleFormUI = (function() {
       externalLink: formState.articleForm.getItemValue('externalLink') || '',
       clientComments: formState.articleForm.getItemValue('clientComments') || '',
       companyId: formState.companyId,
-      tags: tags
+      tags: tagIds  // Store tag IDs instead of tag objects
     };
   }
   
@@ -430,6 +531,7 @@ var ArticleFormUI = (function() {
     formState.articleForm = null;
     formState.companyId = null;
     formState.onSaveCallback = null;
+    formState.selectedTags = [];
   }
   
   /**
@@ -443,6 +545,7 @@ var ArticleFormUI = (function() {
     formState.articleId = null;
     formState.companyId = companyId;
     formState.onSaveCallback = onSaveCallback;
+    formState.selectedTags = [];  // Initialize with empty tags
     
     // Create window and form
     formState.articleWindow = createFormWindow('create', null);
@@ -475,42 +578,63 @@ var ArticleFormUI = (function() {
     formState.companyId = articleData.companyId;
     formState.onSaveCallback = onSaveCallback;
     
-    // Create window and form
-    formState.articleWindow = createFormWindow('edit', articleData.id);
-    formState.articleForm = initializeForm(formState.articleWindow, 'edit');
-    
-    // Populate form with article data
-    formState.articleForm.setItemValue('title', articleData.title || '');
-    formState.articleForm.setItemValue('description', articleData.description || '');
-    formState.articleForm.setItemValue('externalLink', articleData.externalLink || '');
-    formState.articleForm.setItemValue('clientComments', articleData.clientComments || '');
-    
-    // Set status in combo
-    var statusCombo = formState.articleForm.getCombo('status');
-    if (statusCombo && articleData.status) {
-      // Find the index of the status
-      var currentStatusOptions = getStatusOptions();
-      var statusIndex = currentStatusOptions.findIndex(function(opt) {
-        return opt.value === articleData.status;
-      });
-      if (statusIndex !== -1) {
-        statusCombo.selectOption(statusIndex, true, true);
-      }
-    }
-    
-    // Pre-check tags based on article's existing tags
-    if (articleData.tags && Array.isArray(articleData.tags)) {
-      var availableTags = getAvailableTags();
-      availableTags.forEach(function(tag) {
-        var checkboxName = getTagCheckboxName(tag.label);
-        var isTagSelected = articleData.tags.some(function(articleTag) {
-          return articleTag.label === tag.label;
-        });
-        if (isTagSelected) {
-          formState.articleForm.setItemValue(checkboxName, true);
+    // Load tags for the company and convert article tags to tag objects
+    ArticleService.getTags(articleData.companyId)
+      .then(function(companyTags) {
+        // Convert article's tag IDs (if they exist) to full tag objects
+        formState.selectedTags = [];
+        
+        if (articleData.tags && Array.isArray(articleData.tags)) {
+          // Check if tags are already objects (legacy format) or IDs (new format)
+          if (articleData.tags.length > 0 && typeof articleData.tags[0] === 'string') {
+            // New format: tags are IDs
+            formState.selectedTags = companyTags.filter(function(tag) {
+              return articleData.tags.indexOf(tag.id) !== -1;
+            });
+          } else {
+            // Legacy format: tags are objects with label and color
+            // Try to match them with company tags by name
+            articleData.tags.forEach(function(articleTag) {
+              var matchedTag = companyTags.find(function(companyTag) {
+                return companyTag.name === articleTag.label;
+              });
+              if (matchedTag) {
+                formState.selectedTags.push(matchedTag);
+              }
+            });
+          }
         }
+        
+        // Create window and form
+        formState.articleWindow = createFormWindow('edit', articleData.id);
+        formState.articleForm = initializeForm(formState.articleWindow, 'edit');
+        
+        // Populate form with article data
+        formState.articleForm.setItemValue('title', articleData.title || '');
+        formState.articleForm.setItemValue('description', articleData.description || '');
+        formState.articleForm.setItemValue('externalLink', articleData.externalLink || '');
+        formState.articleForm.setItemValue('clientComments', articleData.clientComments || '');
+        
+        // Set status in combo
+        var statusCombo = formState.articleForm.getCombo('status');
+        if (statusCombo && articleData.status) {
+          // Find the index of the status
+          var currentStatusOptions = getStatusOptions();
+          var statusIndex = currentStatusOptions.findIndex(function(opt) {
+            return opt.value === articleData.status;
+          });
+          if (statusIndex !== -1) {
+            statusCombo.selectOption(statusIndex, true, true);
+          }
+        }
+      })
+      .catch(function(error) {
+        console.error('Error loading tags for edit form:', error);
+        dhtmlx.alert({
+          title: 'Error',
+          text: 'No se pudieron cargar las etiquetas. Por favor, inténtelo de nuevo.'
+        });
       });
-    }
   }
   
   /**

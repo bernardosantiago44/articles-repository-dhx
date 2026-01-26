@@ -8,12 +8,21 @@ const ArticleService = (function() {
   
   // Cache for mock data to avoid multiple file loads
   let mockDataCache = null;
+  let tagCache = null;  // Separate cache for tags by company
   
   /**
    * Clear the data cache (useful for development/testing)
    */
   function clearCache() {
     mockDataCache = null;
+    tagCache = null;
+  }
+  
+  /**
+   * Clear only the tag cache (useful when tags are modified)
+   */
+  function clearTagCache() {
+    tagCache = null;
   }
   
   /**
@@ -54,10 +63,161 @@ const ArticleService = (function() {
   }
   
   /**
-   * Get tags specific to a company
+   * Get tags specific to a company from the new centralized tags array
+   * @param {string} companyId - The company ID to filter tags by
+   * @returns {Promise<Array<{id: string, name: string, color: string, description: string, companyId: string}>>} Promise resolving to array of tags
+   */
+  function getTags(companyId) {
+    // Check cache first
+    if (tagCache && tagCache[companyId]) {
+      return Promise.resolve(tagCache[companyId]);
+    }
+    
+    return loadMockData().then(data => {
+      const tags = data.tags || [];
+      
+      // Filter tags by company
+      const companyTags = tags.filter(tag => tag.companyId === companyId);
+      
+      // Initialize cache if needed
+      if (!tagCache) {
+        tagCache = {};
+      }
+      
+      // Cache the tags for this company
+      tagCache[companyId] = companyTags;
+      
+      return companyTags;
+    });
+  }
+  
+  /**
+   * Get a tag by its ID
+   * @param {string} tagId - The tag ID
+   * @returns {Promise<Object|null>} Promise resolving to tag object or null
+   */
+  function getTagById(tagId) {
+    return loadMockData().then(data => {
+      const tags = data.tags || [];
+      const tag = tags.find(t => t.id === tagId);
+      return tag || null;
+    });
+  }
+  
+  /**
+   * Create a new tag (POST equivalent)
+   * @param {Object} tagData - Tag data object {name, color, description, companyId}
+   * @returns {Promise<{status: string, data: Object}>} Promise resolving to the created tag
+   */
+  function createTag(tagData) {
+    return new Promise(function(resolve, reject) {
+      if (!tagData.name || !tagData.color || !tagData.companyId) {
+        reject(new Error('Tag name, color, and companyId are required'));
+        return;
+      }
+      
+      // NOTE: Using Date.now() + random for mock data only.
+      // In production, the backend should generate proper UUIDs or auto-increment IDs
+      var newId = 'tag-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+      var newTag = {
+        id: newId,
+        name: tagData.name,
+        color: tagData.color,
+        description: tagData.description || '',
+        companyId: tagData.companyId
+      };
+      
+      console.log('Creating new tag:', newTag);
+      
+      // Add to mock data cache if available
+      if (mockDataCache && mockDataCache.tags) {
+        mockDataCache.tags.push(newTag);
+      }
+      
+      // Clear tag cache to force refresh
+      clearTagCache();
+      
+      resolve({ status: 'success', data: newTag });
+    });
+  }
+  
+  /**
+   * Update an existing tag (PUT equivalent)
+   * @param {string} tagId - Tag ID to update
+   * @param {Object} tagData - Updated tag data {name, color, description}
+   * @returns {Promise<{status: string, data: Object}>} Promise resolving to the updated tag
+   */
+  function updateTag(tagId, tagData) {
+    return new Promise(function(resolve, reject) {
+      if (!tagData.name || !tagData.color) {
+        reject(new Error('Tag name and color are required'));
+        return;
+      }
+      
+      console.log('Updating tag ' + tagId, tagData);
+      
+      // Update in mock data cache if available
+      if (mockDataCache && mockDataCache.tags) {
+        var index = mockDataCache.tags.findIndex(function(tag) {
+          return tag.id === tagId;
+        });
+        if (index !== -1) {
+          var updatedTag = {
+            id: tagId,
+            name: tagData.name,
+            color: tagData.color,
+            description: tagData.description || '',
+            companyId: mockDataCache.tags[index].companyId  // Preserve companyId
+          };
+          mockDataCache.tags[index] = updatedTag;
+          
+          // Clear tag cache to force refresh
+          clearTagCache();
+          
+          resolve({ status: 'success', data: updatedTag });
+          return;
+        }
+      }
+      
+      reject(new Error('Tag not found'));
+    });
+  }
+  
+  /**
+   * Delete a tag (DELETE equivalent)
+   * @param {string} tagId - Tag ID to delete
+   * @returns {Promise<{status: string}>} Promise resolving to status
+   */
+  function deleteTag(tagId) {
+    return new Promise(function(resolve, reject) {
+      console.log('Deleting tag ' + tagId);
+      
+      // Delete from mock data cache if available
+      if (mockDataCache && mockDataCache.tags) {
+        var index = mockDataCache.tags.findIndex(function(tag) {
+          return tag.id === tagId;
+        });
+        if (index !== -1) {
+          mockDataCache.tags.splice(index, 1);
+          
+          // Clear tag cache to force refresh
+          clearTagCache();
+          
+          resolve({ status: 'success' });
+          return;
+        }
+      }
+      
+      reject(new Error('Tag not found'));
+    });
+  }
+  
+  /**
+   * Get tags specific to a company (LEGACY method for backward compatibility)
    * Tags are extracted from articles belonging to the company and deduplicated
    * @param {string} companyId - The company ID to filter tags by
    * @returns {Promise<Array<{label: string, color: string}>>} Promise resolving to array of unique tags
+   * @deprecated Use getTags() instead for the new centralized tag management
    */
   function getTagsByCompany(companyId) {
     return loadMockData().then(data => {
@@ -90,30 +250,71 @@ const ArticleService = (function() {
   
   /**
    * Get articles filtered by company ID
+   * Articles will have their tag IDs resolved to full tag objects
    * @param {string} companyId - The company ID to filter articles by
    * @returns {Promise<Array<Article>>} Promise resolving to array of filtered articles
    */
   function getArticles(companyId) {
     return loadMockData().then(data => {
       const articles = data.articles || [];
+      const tags = data.tags || [];
       
       // Filter articles by company
       const filteredArticles = articles.filter(article => article.companyId === companyId);
       
-      return filteredArticles;
+      // Resolve tag IDs to full tag objects for each article
+      const articlesWithResolvedTags = filteredArticles.map(article => {
+        if (article.tags && Array.isArray(article.tags)) {
+          const resolvedTags = article.tags.map(tagId => {
+            const tag = tags.find(t => t.id === tagId);
+            if (tag) {
+              return tag;
+            }
+            return null;
+          }).filter(tag => tag !== null);
+          
+          return Object.assign({}, article, { tags: resolvedTags });
+        }
+        return article;
+      });
+      
+      return articlesWithResolvedTags;
     });
   }
   
   /**
-   * Get a single article by ID
+   * Get a single article by ID with resolved tag objects
    * @param {string} articleId - The article ID
    * @returns {Promise<Article|null>} Promise resolving to article object or null
    */
   function getArticleById(articleId) {
     return loadMockData().then(data => {
       const articles = data.articles || [];
+      const tags = data.tags || [];
       const article = articles.find(article => article.id === articleId);
-      return article || null;
+      
+      if (!article) {
+        return null;
+      }
+      
+      // Resolve tag IDs to full tag objects
+      if (article.tags && Array.isArray(article.tags)) {
+        const resolvedTags = article.tags.map(tagId => {
+          const tag = tags.find(t => t.id === tagId);
+          if (tag) {
+            // Return tag in the legacy format for backward compatibility
+            return {
+              label: tag.name,
+              color: tag.color
+            };
+          }
+          return null;
+        }).filter(tag => tag !== null);
+        
+        return Object.assign({}, article, { tags: resolvedTags });
+      }
+      
+      return article;
     });
   }
   
@@ -191,12 +392,18 @@ const ArticleService = (function() {
   // Public API
   return {
     getCompanies: getCompanies,
-    getTagsByCompany: getTagsByCompany,
+    getTags: getTags,
+    getTagById: getTagById,
+    createTag: createTag,
+    updateTag: updateTag,
+    deleteTag: deleteTag,
+    getTagsByCompany: getTagsByCompany,  // Legacy method for backward compatibility
     getArticles: getArticles,
     getArticleById: getArticleById,
     getCompanyById: getCompanyById,
     createArticle: createArticle,
     updateArticle: updateArticle,
-    clearCache: clearCache  // Expose cache clearing for development/testing
+    clearCache: clearCache,  // Expose cache clearing for development/testing
+    clearTagCache: clearTagCache  // Expose tag cache clearing
   };
 })();
