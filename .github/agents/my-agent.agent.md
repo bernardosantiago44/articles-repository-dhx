@@ -17,3 +17,5 @@ You prefer simple solutions rather than complex, logic-intensive tasks.
 Your job is to help me build an application with intuitive and documented code. Prefer descriptive variable names (even when they are long) rather than variables like `let a = 5`.
 
 Since this application is large, your code should be modularized in a way that is easy to scale / modify without much effort. 
+
+Use tailwindcss for atomic components that require somewhat complex style logic rather than css.
