@@ -130,6 +130,64 @@ const ArticleService = (function() {
     });
   }
   
+  /**
+   * Create a new article (POST equivalent)
+   * @param {Object} data - Article data object
+   * @returns {Promise<{status: string, data: Article}>} Promise resolving to the created article
+   */
+  function createArticle(data) {
+    return new Promise(function(resolve) {
+      var newId = 'issue-' + Math.floor(Math.random() * 10000);
+      var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      var newRecord = Object.assign({}, data, {
+        id: newId,
+        createdAt: today,
+        updatedAt: today
+      });
+      
+      console.log('Creating new article:', newRecord);
+      
+      // Add to mock data cache if available
+      if (mockDataCache && mockDataCache.articles) {
+        mockDataCache.articles.push(newRecord);
+      }
+      
+      resolve({ status: 'success', data: newRecord });
+    });
+  }
+  
+  /**
+   * Update an existing article (PUT equivalent)
+   * @param {string} id - Article ID to update
+   * @param {Object} data - Updated article data
+   * @returns {Promise<{status: string, data: Article}>} Promise resolving to the updated article
+   */
+  function updateArticle(id, data) {
+    return new Promise(function(resolve) {
+      var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      var updatedRecord = Object.assign({}, data, {
+        id: id,
+        updatedAt: today
+      });
+      
+      console.log('Updating article ' + id, updatedRecord);
+      
+      // Update in mock data cache if available
+      if (mockDataCache && mockDataCache.articles) {
+        var index = mockDataCache.articles.findIndex(function(article) {
+          return article.id === id;
+        });
+        if (index !== -1) {
+          // Preserve original createdAt
+          updatedRecord.createdAt = mockDataCache.articles[index].createdAt;
+          mockDataCache.articles[index] = updatedRecord;
+        }
+      }
+      
+      resolve({ status: 'success', data: updatedRecord });
+    });
+  }
+  
   // Public API
   return {
     getCompanies: getCompanies,
@@ -137,6 +195,8 @@ const ArticleService = (function() {
     getArticles: getArticles,
     getArticleById: getArticleById,
     getCompanyById: getCompanyById,
+    createArticle: createArticle,
+    updateArticle: updateArticle,
     clearCache: clearCache  // Expose cache clearing for development/testing
   };
 })();

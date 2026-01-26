@@ -67,7 +67,7 @@ header_toolbar.setItemToolTip('toggle_user_role', 'Cambiar entre Admin y Usuario
 // Toolbar Click Handler
 header_toolbar.attachEvent('onClick', function(id) {
   if (id === 'new_article') {
-    alert('Funcionalidad "Nuevo artículo" - Por implementar');
+    openNewArticleForm();
   } else if (id === 'toggle_user_role') {
     toggleUserRole();
   }
@@ -368,7 +368,7 @@ function onArticleSelect(articleId) {
           var editBtn = document.getElementById('edit-article-btn');
           if (editBtn) {
             editBtn.onclick = function() {
-              alert('Editar artículo: ' + articleId + '\n(Funcionalidad por implementar)');
+              openEditArticleForm(articleId);
             };
           } else {
             console.warn('Edit button not found in DOM');
@@ -417,6 +417,79 @@ function toggleUserRole() {
       }
     }
   });
+}
+
+// ============================================================================
+// Article Form Functions
+// ============================================================================
+
+/**
+ * Open the form for creating a new article
+ */
+function openNewArticleForm() {
+  // Check if a company is selected
+  if (!appState.selectedCompanyId) {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'Por favor seleccione una empresa primero.'
+    });
+    return;
+  }
+  
+  ArticleFormUI.openCreateForm(appState.selectedCompanyId, onArticleFormSaved);
+}
+
+/**
+ * Open the form for editing an existing article
+ * @param {string} articleId - ID of the article to edit
+ */
+function openEditArticleForm(articleId) {
+  ArticleService.getArticleById(articleId)
+    .then(function(article) {
+      if (!article) {
+        dhtmlx.alert({
+          title: 'Error',
+          text: 'Artículo no encontrado'
+        });
+        return;
+      }
+      
+      ArticleFormUI.openEditForm(article, onArticleFormSaved);
+    })
+    .catch(function(error) {
+      console.error('Error loading article for edit:', error);
+      dhtmlx.alert({
+        title: 'Error',
+        text: 'Error al cargar el artículo: ' + error.message
+      });
+    });
+}
+
+/**
+ * Callback function after an article is saved (created or updated)
+ * @param {Object} articleData - The saved article data
+ * @param {string} mode - 'create' or 'edit'
+ */
+function onArticleFormSaved(articleData, mode) {
+  // Reload articles for the current company to refresh the grid
+  loadArticlesForCompany(appState.selectedCompanyId)
+    .then(function() {
+      if (mode === 'create') {
+        // Select the newly created row in the grid
+        if (appState.articlesGrid && articleData.id) {
+          appState.articlesGrid.selectRowById(articleData.id, false, true, true);
+          onArticleSelect(articleData.id);
+        }
+      } else if (mode === 'edit') {
+        // Refresh the detail sidebar to show the updated data
+        if (appState.selectedArticleId === articleData.id) {
+          onArticleSelect(articleData.id);
+        }
+      }
+    })
+    .catch(function(error) {
+      console.error('Error refreshing grid after save:', error);
+    });
 }
 
 // ============================================================================
