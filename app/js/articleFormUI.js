@@ -21,13 +21,29 @@ var ArticleFormUI = (function() {
     onSaveCallback: null        // Callback function after save
   };
   
-  // Status options for the dropdown
-  var statusOptions = [
-    { value: 'Abierto', text: 'Abierto' },
-    { value: 'En progreso', text: 'En progreso' },
-    { value: 'Esperando', text: 'Esperando' },
-    { value: 'Cerrado', text: 'Cerrado' }
-  ];
+  /**
+   * Get status options from the articleStatusConfiguration defined in dataModels.js
+   * This maintains a single source of truth for status values
+   * @returns {Array} Array of status options for combo
+   */
+  function getStatusOptions() {
+    // Use articleStatusConfiguration from dataModels.js (loaded globally)
+    if (typeof articleStatusConfiguration !== 'undefined') {
+      return Object.keys(articleStatusConfiguration).map(function(key) {
+        return {
+          value: key,
+          text: articleStatusConfiguration[key].label
+        };
+      });
+    }
+    // Fallback if dataModels not loaded
+    return [
+      { value: 'Abierto', text: 'Abierto' },
+      { value: 'En progreso', text: 'En progreso' },
+      { value: 'Esperando', text: 'Esperando' },
+      { value: 'Cerrado', text: 'Cerrado' }
+    ];
+  }
   
   /**
    * Get the form structure configuration for dhtmlXForm
@@ -70,7 +86,7 @@ var ArticleFormUI = (function() {
             type: 'combo',
             name: 'status',
             inputWidth: 200,
-            options: statusOptions.map(function(opt, index) {
+            options: getStatusOptions().map(function(opt, index) {
               return {
                 value: opt.value,
                 text: opt.text,
@@ -385,7 +401,8 @@ var ArticleFormUI = (function() {
     var statusCombo = formState.articleForm.getCombo('status');
     if (statusCombo && articleData.status) {
       // Find the index of the status
-      var statusIndex = statusOptions.findIndex(function(opt) {
+      var currentStatusOptions = getStatusOptions();
+      var statusIndex = currentStatusOptions.findIndex(function(opt) {
         return opt.value === articleData.status;
       });
       if (statusIndex !== -1) {
