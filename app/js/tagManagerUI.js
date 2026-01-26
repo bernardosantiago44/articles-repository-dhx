@@ -159,10 +159,7 @@ var TagManagerUI = (function() {
       html += `
         <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
           <div class="flex items-center space-x-4 flex-1">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white" 
-                  style="background-color: ${tag.color};">
-              ${escapeHtml(tag.name)}
-            </span>
+            ${renderTagBadge(tag)}
             <div class="flex-1">
               <p class="text-sm text-gray-600">${escapeHtml(tag.description || 'Sin descripción')}</p>
             </div>

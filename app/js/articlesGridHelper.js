@@ -1,6 +1,8 @@
 /**
  * Articles Grid Helper Module
  * Provides utility functions and templates for rendering the articles grid
+ * Dependencies:
+ * - tagBadge.js (must be loaded before this module for renderTagBadges function)
  */
 
 /**
@@ -34,23 +36,6 @@ function renderTitleCellTemplate(title, description) {
       <div style="font-size: 12px; color: #8c8c8c; line-height: 1.4;">${description}</div>
     </div>
   `;
-}
-
-/**
- * Generate HTML template for tags column with colored badges
- * @param {Array<{label: string, color: string}>} tags - Array of tag objects
- * @returns {string} HTML string for tags cell
- */
-function renderTagsCellTemplate(tags) {
-  if (!tags || tags.length === 0) {
-    return '<div></div>';
-  }
-  
-  const tagsHtml = tags.map(tag => {
-    return `<span style="display: inline-block; padding: 2px 8px; margin: 2px; border-radius: 4px; background-color: ${tag.color}; color: white; font-size: 11px; font-weight: 500;">${tag.label}</span>`;
-  }).join('');
-  
-  return `<div style="display: flex; flex-wrap: wrap; gap: 4px;">${tagsHtml}</div>`;
 }
 
 /**
@@ -117,7 +102,7 @@ function initializeArticlesGrid(gridCell, articlesData) {
     // Set custom HTML content for each cell
     articlesGrid.cells(rowId, 1).setValue(renderStatusCellTemplate(article.status, statusConfig));
     articlesGrid.cells(rowId, 2).setValue(renderTitleCellTemplate(article.title, article.description));
-    articlesGrid.cells(rowId, 3).setValue(renderTagsCellTemplate(article.tags));
+    articlesGrid.cells(rowId, 3).setValue(renderTagBadges(article.tags));
     articlesGrid.cells(rowId, 4).setValue(article.updatedAt);
     articlesGrid.cells(rowId, 5).setValue(article.createdAt);
   });

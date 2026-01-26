@@ -268,11 +268,7 @@ const ArticleService = (function() {
           const resolvedTags = article.tags.map(tagId => {
             const tag = tags.find(t => t.id === tagId);
             if (tag) {
-              // Return tag in the legacy format for backward compatibility
-              return {
-                label: tag.name,
-                color: tag.color
-              };
+              return tag;
             }
             return null;
           }).filter(tag => tag !== null);
