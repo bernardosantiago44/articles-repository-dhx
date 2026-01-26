@@ -247,10 +247,10 @@ var ArticleFormUI = (function() {
     });
     
     // Initialize tag container with click handler
-    // Use setTimeout to ensure form is fully rendered
-    setTimeout(function() {
+    // Using requestAnimationFrame ensures the form DOM is rendered before we attach handlers
+    requestAnimationFrame(function() {
       initializeTagContainer();
-    }, 100);
+    });
     
     return form;
   }
@@ -632,7 +632,7 @@ var ArticleFormUI = (function() {
         console.error('Error loading tags for edit form:', error);
         dhtmlx.alert({
           title: 'Error',
-          text: 'Error al cargar las etiquetas: ' + error.message
+          text: 'No se pudieron cargar las etiquetas. Por favor, inténtelo de nuevo.'
         });
       });
   }

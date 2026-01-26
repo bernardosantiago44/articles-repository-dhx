@@ -66,7 +66,7 @@ var TagManagerUI = (function() {
         console.error('Error loading tags:', error);
         dhtmlx.alert({
           title: 'Error',
-          text: 'Error al cargar las etiquetas: ' + error.message
+          text: 'No se pudieron cargar las etiquetas. Por favor, inténtelo de nuevo.'
         });
       });
   }
@@ -344,10 +344,11 @@ var TagManagerUI = (function() {
     });
     
     // Render color presets after DOM is ready
-    setTimeout(function() {
+    // Using requestAnimationFrame ensures the DOM is painted before we attach listeners
+    requestAnimationFrame(function() {
       renderColorPresets(formData.color);
       attachTagFormEventListeners(isEdit);
-    }, 0);
+    });
   }
   
   /**
@@ -531,7 +532,7 @@ var TagManagerUI = (function() {
         console.error('Error saving tag:', error);
         dhtmlx.alert({
           title: 'Error',
-          text: 'Error al guardar la etiqueta: ' + error.message
+          text: 'No se pudo guardar la etiqueta. Por favor, inténtelo de nuevo.'
         });
       });
   }
@@ -590,7 +591,7 @@ var TagManagerUI = (function() {
         console.error('Error deleting tag:', error);
         dhtmlx.alert({
           title: 'Error',
-          text: 'Error al eliminar la etiqueta: ' + error.message
+          text: 'No se pudo eliminar la etiqueta. Por favor, inténtelo de nuevo.'
         });
       });
   }

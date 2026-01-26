@@ -53,7 +53,7 @@ var TagPickerUI = (function() {
         console.error('Error loading tags:', error);
         dhtmlx.alert({
           title: 'Error',
-          text: 'Error al cargar las etiquetas: ' + error.message
+          text: 'No se pudieron cargar las etiquetas. Por favor, inténtelo de nuevo.'
         });
       });
   }
