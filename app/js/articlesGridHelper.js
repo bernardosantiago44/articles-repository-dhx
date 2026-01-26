@@ -63,7 +63,8 @@ function initializeArticlesGrid(gridCell, articlesData) {
   const articlesGrid = gridCell.attachGrid();
   
   // Configure grid appearance
-  articlesGrid.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/dhxgrid_material/');
+  articlesGrid.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
+  articlesGrid.setImagePath('./wwwroot/Dhtmlx/codebase/imgs/');
   articlesGrid.enableMultiselect(true);
   
   // Define column headers
