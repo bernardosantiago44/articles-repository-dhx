@@ -61,13 +61,18 @@ var header_toolbar = header_trailing.attachToolbar();
 header_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
 header_toolbar.addButton('new_article', 1, 'Nuevo artículo');
 header_toolbar.addSeparator('sep1', 2);
-header_toolbar.addButton('toggle_user_role', 3, 'Cambiar a Usuario Regular');
+header_toolbar.addButton('manage_tags', 3, 'Administrar Etiquetas');
+header_toolbar.addSeparator('sep2', 4);
+header_toolbar.addButton('toggle_user_role', 5, 'Cambiar a Usuario Regular');
 header_toolbar.setItemToolTip('toggle_user_role', 'Cambiar entre Admin y Usuario Regular');
+header_toolbar.setItemToolTip('manage_tags', 'Administrar etiquetas de la empresa');
 
 // Toolbar Click Handler
 header_toolbar.attachEvent('onClick', function(id) {
   if (id === 'new_article') {
     openNewArticleForm();
+  } else if (id === 'manage_tags') {
+    openTagManager();
   } else if (id === 'toggle_user_role') {
     toggleUserRole();
   }
@@ -205,6 +210,8 @@ function initializeAdminView() {
 function initializeRegularUserView() {
   // Hide the "Nuevo artículo" button for regular users
   header_toolbar.hideItem('new_article');
+  // Hide the "Administrar Etiquetas" button for regular users
+  header_toolbar.hideItem('manage_tags');
   
   // Regular users have a fixed company
   appState.selectedCompanyId = UserService.getCurrentUserCompanyId();
@@ -286,6 +293,9 @@ function onCompanyChange(companyId) {
   
   appState.selectedCompanyId = companyId;
   UserService.setCurrentCompanyForAdmin(companyId);
+  
+  // Clear tag cache when company changes
+  ArticleService.clearTagCache();
   
   // Clear current grid
   if (appState.articlesGrid) {
@@ -419,6 +429,38 @@ function toggleUserRole() {
         }
       }
     }
+  });
+}
+
+/**
+ * Open the Tag Manager for the currently selected company (Admin only)
+ */
+function openTagManager() {
+  // Check if a company is selected
+  if (!appState.selectedCompanyId) {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'Por favor seleccione una empresa primero.'
+    });
+    return;
+  }
+  
+  // Check if user is admin
+  if (!UserService.isAdministrator()) {
+    dhtmlx.alert({
+      title: 'Acceso denegado',
+      text: 'Solo los administradores pueden gestionar etiquetas.'
+    });
+    return;
+  }
+  
+  // Open the tag manager
+  TagManagerUI.openTagManager(appState.selectedCompanyId, function() {
+    // Callback when tags are changed - reload articles to reflect changes
+    loadArticlesForCompany(appState.selectedCompanyId)
+      .catch(function(error) {
+        console.error('Error reloading articles after tag changes:', error);
+      });
   });
 }
 

@@ -1,4 +1,23 @@
 {
+  "tags": [
+    { "id": "tag-001", "name": "Urgente", "color": "#ef4444", "description": "Requiere atención inmediata", "companyId": "co-01" },
+    { "id": "tag-002", "name": "Bug", "color": "#f97316", "description": "Error en el sistema", "companyId": "co-01" },
+    { "id": "tag-003", "name": "Feature", "color": "#3b82f6", "description": "Nueva funcionalidad", "companyId": "co-01" },
+    { "id": "tag-004", "name": "Documentación", "color": "#22c55e", "description": "Relacionado con documentación", "companyId": "co-01" },
+    { "id": "tag-005", "name": "Critical", "color": "#dc2626", "description": "Problema crítico del sistema", "companyId": "co-01" },
+    { "id": "tag-006", "name": "Integration", "color": "#0ea5e9", "description": "Integraciones con terceros", "companyId": "co-01" },
+    { "id": "tag-007", "name": "Access", "color": "#14b8a6", "description": "Permisos y accesos", "companyId": "co-02" },
+    { "id": "tag-008", "name": "High Priority", "color": "#ef4444", "description": "Alta prioridad", "companyId": "co-02" },
+    { "id": "tag-009", "name": "Bug", "color": "#f97316", "description": "Error en el sistema", "companyId": "co-02" },
+    { "id": "tag-010", "name": "Permissions", "color": "#8b5cf6", "description": "Gestión de permisos", "companyId": "co-02" },
+    { "id": "tag-011", "name": "Documentation", "color": "#22c55e", "description": "Relacionado con documentación", "companyId": "co-02" },
+    { "id": "tag-012", "name": "Performance", "color": "#f59e0b", "description": "Optimización de rendimiento", "companyId": "co-02" },
+    { "id": "tag-013", "name": "Feature", "color": "#3b82f6", "description": "Nueva funcionalidad", "companyId": "co-03" },
+    { "id": "tag-014", "name": "Enhancement", "color": "#10b981", "description": "Mejora de funcionalidad existente", "companyId": "co-03" },
+    { "id": "tag-015", "name": "Performance", "color": "#f59e0b", "description": "Optimización de rendimiento", "companyId": "co-03" },
+    { "id": "tag-016", "name": "Bug", "color": "#f97316", "description": "Error en el sistema", "companyId": "co-03" },
+    { "id": "tag-017", "name": "High Priority", "color": "#ef4444", "description": "Alta prioridad", "companyId": "co-03" }
+  ],
   "companies": [
     { "id": "co-01", "name": "Acme Corporation" },
     { "id": "co-02", "name": "Global Tech Solutions" },
@@ -13,10 +32,7 @@
       "externalLink": "https://external-tracker.com/issue-0001",
       "clientComments": "Cliente reportó: 'No se puede iniciar sesión después del cambio de contraseña. Ya intentamos con múltiples usuarios y todos tienen el mismo problema'. Mencionaron que esto ha estado afectando su flujo de trabajo durante los últimos 3 días y están perdiendo productividad. Solicitan una solución urgente ya que tienen empleados bloqueados.",
       "status": "Abierto",
-      "tags": [
-        { "label": "Urgente", "color": "#ff4d4f" },
-        { "label": "Bug", "color": "#ffa940" }
-      ],
+      "tags": ["tag-001", "tag-002"],
       "createdAt": "2026-01-02",
       "updatedAt": "2026-01-20"
     },
@@ -28,10 +44,7 @@
       "externalLink": "https://external-tracker.com/issue-0002",
       "clientComments": "El departamento de IT requiere asistencia técnica inmediata. Han intentado múltiples configuraciones sin éxito y necesitan soporte especializado para resolver la integración con Okta.",
       "status": "En progreso",
-      "tags": [
-        { "label": "Documentation", "color": "#722ed1" },
-        { "label": "Feature", "color": "#1890ff" }
-      ],
+      "tags": ["tag-004", "tag-003"],
       "createdAt": "2025-07-27",
       "updatedAt": "2026-01-18"
     },
@@ -43,10 +56,7 @@
       "externalLink": "https://external-tracker.com/issue-0003",
       "clientComments": "Solicitud urgente para el equipo de QA. Necesitamos comenzar las pruebas lo antes posible ya que tenemos un deadline ajustado para el lanzamiento a producción. Por favor, priorizar esta solicitud.",
       "status": "Esperando",
-      "tags": [
-        { "label": "Access", "color": "#13c2c2" },
-        { "label": "High Priority", "color": "#ff4d4f" }
-      ],
+      "tags": ["tag-007", "tag-008"],
       "createdAt": "2026-01-08",
       "updatedAt": "2026-01-19"
     },
@@ -58,10 +68,7 @@
       "externalLink": "https://external-tracker.com/issue-0004",
       "clientComments": "Este problema está bloqueando la incorporación de nuevos empleados. Tenemos 5 nuevos colaboradores que deben empezar esta semana y no podemos darles acceso al sistema. La situación es crítica para nuestras operaciones.",
       "status": "Cerrado",
-      "tags": [
-        { "label": "Bug", "color": "#ffa940" },
-        { "label": "Permissions", "color": "#722ed1" }
-      ],
+      "tags": ["tag-009", "tag-010"],
       "createdAt": "2025-12-10",
       "updatedAt": "2026-01-15"
     },
@@ -73,11 +80,7 @@
       "externalLink": "https://external-tracker.com/issue-0005",
       "clientComments": "Los clientes reportan errores al procesar pagos. Esto está causando pérdida de ventas y una muy mala experiencia para nuestros usuarios finales. Necesitamos una solución inmediata o consideraremos cambiar de proveedor de pagos. Este es un issue crítico para nuestro negocio.",
       "status": "Abierto",
-      "tags": [
-        { "label": "Critical", "color": "#ff4d4f" },
-        { "label": "Integration", "color": "#1890ff" },
-        { "label": "Bug", "color": "#ffa940" }
-      ],
+      "tags": ["tag-005", "tag-006", "tag-002"],
       "createdAt": "2026-01-15",
       "updatedAt": "2026-01-21"
     },
@@ -89,9 +92,7 @@
       "externalLink": "https://external-tracker.com/issue-0006",
       "clientComments": "La documentación actual está desactualizada y está causando confusión en nuestro equipo de desarrollo. Varios desarrolladores han perdido tiempo intentando usar endpoints que ya no funcionan como se describe. Por favor, actualizar lo antes posible.",
       "status": "En progreso",
-      "tags": [
-        { "label": "Documentation", "color": "#722ed1" }
-      ],
+      "tags": ["tag-011"],
       "createdAt": "2026-01-10",
       "updatedAt": "2026-01-18"
     },
@@ -103,10 +104,7 @@
       "externalLink": "",
       "clientComments": "Esta funcionalidad es muy importante para nuestro equipo de análisis. Actualmente tienen que copiar y pegar datos manualmente, lo cual es muy ineficiente y propenso a errores. Una solución automatizada mejoraría significativamente su productividad.",
       "status": "Abierto",
-      "tags": [
-        { "label": "Feature", "color": "#1890ff" },
-        { "label": "Enhancement", "color": "#52c41a" }
-      ],
+      "tags": ["tag-013", "tag-014"],
       "createdAt": "2026-01-12",
       "updatedAt": "2026-01-19"
     },
@@ -118,11 +116,7 @@
       "externalLink": "https://external-tracker.com/issue-0008",
       "clientComments": "El rendimiento es inaceptable. Nuestros usuarios se quejan constantemente de la lentitud del dashboard. Algunos han dejado de usarlo completamente. Necesitamos una solución urgente o el producto perderá adopción.",
       "status": "En progreso",
-      "tags": [
-        { "label": "Performance", "color": "#fa8c16" },
-        { "label": "Bug", "color": "#ffa940" },
-        { "label": "High Priority", "color": "#ff4d4f" }
-      ],
+      "tags": ["tag-015", "tag-016", "tag-017"],
       "createdAt": "2026-01-05",
       "updatedAt": "2026-01-20"
     }

@@ -106,3 +106,36 @@ html, body {
   background-color: #e6f7ff !important;
   border-color: #91d5ff !important;
 }
+
+/* Tag Manager and Tag Picker Modal Styles */
+.tag-container-wrapper:hover {
+  border-color: #40a9ff !important;
+}
+
+/* Ensure modals appear above DHTMLX components */
+.fixed {
+  position: fixed !important;
+}
+
+/* Smooth transitions for tag badges */
+.tag-badge-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for tag lists */
+.tag-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tag-list-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.tag-list-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.tag-list-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
