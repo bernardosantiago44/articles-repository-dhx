@@ -53,7 +53,6 @@ header_leading.attachHTMLString(`
 
 // Header Right - Toolbar
 var header_trailing = header_stack.cells('b');
-header_trailing.setWidth('400');
 header_trailing.hideHeader();
 header_trailing.fixSize(1, 0);
 
@@ -61,18 +60,13 @@ var header_toolbar = header_trailing.attachToolbar();
 header_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
 header_toolbar.addButton('new_article', 1, 'Nuevo artículo');
 header_toolbar.addSeparator('sep1', 2);
-header_toolbar.addButton('manage_tags', 3, 'Administrar Etiquetas');
-header_toolbar.addSeparator('sep2', 4);
-header_toolbar.addButton('toggle_user_role', 5, 'Cambiar a Usuario Regular');
+header_toolbar.addButton('toggle_user_role', 3, 'Cambiar a Usuario Regular');
 header_toolbar.setItemToolTip('toggle_user_role', 'Cambiar entre Admin y Usuario Regular');
-header_toolbar.setItemToolTip('manage_tags', 'Administrar etiquetas de la empresa');
 
 // Toolbar Click Handler
 header_toolbar.attachEvent('onClick', function(id) {
   if (id === 'new_article') {
     openNewArticleForm();
-  } else if (id === 'manage_tags') {
-    openTagManager();
   } else if (id === 'toggle_user_role') {
     toggleUserRole();
   }
@@ -100,22 +94,9 @@ var articles_layout = articles.attachLayout('2E');
 // ============================================================================
 
 var filters_container = articles_layout.cells('a');
-filters_container.setHeight('120');
+filters_container.setHeight('60');
 filters_container.hideHeader();
 filters_container.fixSize(0, 1);
-
-var filters_layout = filters_container.attachLayout('2E');
-
-// Filters Toolbar Area
-var filters_toolbar = filters_layout.cells('a');
-filters_toolbar.setHeight('38');
-filters_toolbar.hideHeader();
-filters_toolbar.fixSize(0, 1);
-
-// Filters Form Area
-var filters_form_cell = filters_layout.cells('b');
-filters_form_cell.hideHeader();
-filters_form_cell.fixSize(0, 1);
 
 // ============================================================================
 // Grid Section (Center) and Sidebar (Right)
@@ -123,6 +104,18 @@ filters_form_cell.fixSize(0, 1);
 
 var grid_sidebar_layout = articles_layout.cells('b');
 grid_sidebar_layout.hideHeader();
+
+// Grid Toolbar Area (various actions)
+var grid_toolbar = grid_sidebar_layout.attachToolbar();
+grid_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
+grid_toolbar.addButton('manage_tags', 1, 'Administrar Etiquetas');
+
+grid_toolbar.setItemToolTip('manage_tags', 'Refrescar la lista de artículos');
+grid_toolbar.attachEvent('onClick', function(id) {
+  if (id === 'manage_tags') {
+    openTagManager();
+  }
+});
 
 // Split into grid and sidebar
 var grid_sidebar_split = grid_sidebar_layout.attachLayout('2U');
@@ -226,7 +219,7 @@ function initializeRegularUserView() {
   }
   
   // Hide company picker for regular users
-  filters_form_cell.attachHTMLString('<div style="padding: 20px; font-size: 14px; color: #595959;">Vista de usuario regular</div>');
+  filters_container.attachHTMLString('<div style="padding: 20px; font-size: 14px; color: #595959;">Vista de usuario regular</div>');
   
   // Load articles for user's company
   loadArticlesForCompany(appState.selectedCompanyId)
@@ -275,7 +268,7 @@ function createCompanyCombo(companies) {
     }
   ];
   
-  var filters_form = filters_form_cell.attachForm(formData);
+  var filters_form = filters_container.attachForm(formData);
   appState.companyCombo = filters_form.getCombo('company');
   
   // Attach event listener for company change
