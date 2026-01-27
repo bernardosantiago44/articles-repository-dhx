@@ -117,6 +117,7 @@ var filters_container = articles_layout.cells('a');
 filters_container.setHeight(LAYOUT_CONFIG.FILTERS_SECTION_HEIGHT);
 filters_container.hideHeader();
 filters_container.fixSize(0, 1);
+filters_container.setHeight(90);
 
 // ============================================================================
 // Grid Section (Center) and Sidebar (Right)
@@ -212,7 +213,7 @@ function initializeAdminView() {
       }
       
       // Create filter form with company combo picker
-      createCompanyCombo(companies);
+      createGridFilters(companies);
       
       // Set initial company (first company)
       appState.selectedCompanyId = companies[0].id;
@@ -274,10 +275,13 @@ function initializeRegularUserView() {
  * Also creates the advanced filter controls
  * @param {Array<Company>} companies - List of companies
  */
-function createCompanyCombo(companies) {
+function createGridFilters(companies) {
   // Create HTML container for all filters
-  var filterHtml = createFilterContainerHtml(companies);
+  const filterHtml = createFilterContainerHtml(companies);
   filters_container.attachHTMLString(filterHtml);
+
+  const companyComboHtml = createCompanyComboOptions(companies);
+  header_trailing.attachHTMLString(companyComboHtml);
   
   // Initialize all filter controls after DOM is ready
   requestAnimationFrame(function() {
@@ -299,34 +303,39 @@ function createFilterFormForRegularUser() {
   });
 }
 
+function createCompanyComboOptions(companies) {
+  var companyPickerHtml = '';
+if (companies && companies.length > 0) {
+    var optionsHtml = companies.map(function(company, index) {
+      return '<option value="' + company.id + '"' + (index === 0 ? ' selected' : '') + '>' + company.name + '</option>';
+    }).join('');
+    
+    companyPickerHtml = '<div class="p-4 space-y-3">' +
+      '<div class="flex items-center gap-2">' +
+        '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Empresa:</label>' +
+        '<select id="filter-company" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[200px]">' +
+          optionsHtml +
+        '</select>' +
+      '</div>' +
+    '</div>';
+  } else {
+    companyPickerHtml = '<div class="p-4 space-y-3">' +
+      '<div class="flex items-center gap-2">' +
+        '<span class="text-sm text-gray-500 italic">Vista de usuario regular</span>' +
+      '</div>' +
+    '</div>';
+  }
+  return companyPickerHtml;
+}
+
 /**
  * Create the HTML for the filter container
  * @param {Array<Company>|null} companies - Companies array for admin, null for regular users
  * @returns {string} HTML string for filter container
  */
 function createFilterContainerHtml(companies) {
-  var companyPickerHtml = '';
-  
-  if (companies && companies.length > 0) {
-    var optionsHtml = companies.map(function(company, index) {
-      return '<option value="' + company.id + '"' + (index === 0 ? ' selected' : '') + '>' + company.name + '</option>';
-    }).join('');
-    
-    companyPickerHtml = '<div class="flex items-center gap-2">' +
-      '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Empresa:</label>' +
-      '<select id="filter-company" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[200px]">' +
-        optionsHtml +
-      '</select>' +
-    '</div>';
-  } else {
-    companyPickerHtml = '<div class="flex items-center gap-2">' +
-      '<span class="text-sm text-gray-500 italic">Vista de usuario regular</span>' +
-    '</div>';
-  }
-  
   return '<div class="p-4 space-y-3">' +
     '<div class="flex flex-wrap items-center gap-4">' +
-      companyPickerHtml +
       '<div class="flex items-center gap-2">' +
         '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Buscar:</label>' +
         '<input type="text" id="filter-search" placeholder="Buscar en título, descripción, comentarios, etiquetas..." ' +
@@ -342,8 +351,6 @@ function createFilterContainerHtml(companies) {
           '<option value="Cerrado">Cerrado</option>' +
         '</select>' +
       '</div>' +
-    '</div>' +
-    '<div class="flex flex-wrap items-center gap-4">' +
       '<div class="flex items-center gap-2">' +
         '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Fecha inicio:</label>' +
         '<input type="date" id="filter-date-start" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" />' +
