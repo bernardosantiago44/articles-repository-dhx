@@ -98,7 +98,7 @@ const FileService = (function() {
               description: description || file.name + ' para la empresa',
               upload_date: currentDate,
               companyId: companyId,
-              linked_tickets: []
+              linked_articles: []
             };
             
             uploadedFiles.push(uploadedFile);

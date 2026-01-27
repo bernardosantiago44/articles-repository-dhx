@@ -78,9 +78,9 @@ const FilesCardViewUI = (function() {
         <!-- Footer -->
         <div class="flex items-center justify-between pt-3 border-t border-gray-100">
           <span class="text-xs text-gray-500">${formattedDate}</span>
-          ${file.linked_tickets && file.linked_tickets.length > 0 ? `
+          ${file.linked_articles && file.linked_articles.length > 0 ? `
             <span class="text-xs font-medium text-blue-600">
-              ${file.linked_tickets.length} ticket${file.linked_tickets.length > 1 ? 's' : ''}
+              ${file.linked_articles.length} artículo${file.linked_articles.length > 1 ? 's' : ''}
             </span>
           ` : ''}
         </div>

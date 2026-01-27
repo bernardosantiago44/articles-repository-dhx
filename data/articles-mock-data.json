@@ -129,7 +129,7 @@
       "description": "test-results para Acme Corporation",
       "upload_date": "2026-01-26",
       "companyId": "co-01",
-      "linked_tickets": ["issue-0001"]
+      "linked_articles": ["issue-0001"]
     },
     {
       "id": "file-002",
@@ -138,7 +138,7 @@
       "description": "api-response para Acme Corporation",
       "upload_date": "2026-01-22",
       "companyId": "co-01",
-      "linked_tickets": ["issue-0002"]
+      "linked_articles": ["issue-0002"]
     },
     {
       "id": "file-003",
@@ -147,7 +147,7 @@
       "description": "screenshot-bug para Acme Corporation",
       "upload_date": "2026-01-04",
       "companyId": "co-01",
-      "linked_tickets": ["issue-0001", "issue-0003"]
+      "linked_articles": ["issue-0001", "issue-0003"]
     },
     {
       "id": "file-004",
@@ -156,7 +156,7 @@
       "description": "error-log para Acme Corporation",
       "upload_date": "2025-12-30",
       "companyId": "co-01",
-      "linked_tickets": []
+      "linked_articles": []
     },
     {
       "id": "file-005",
@@ -165,7 +165,7 @@
       "description": "user-manual para Acme Corporation",
       "upload_date": "2025-11-27",
       "companyId": "co-01",
-      "linked_tickets": []
+      "linked_articles": []
     },
     {
       "id": "file-006",
@@ -174,7 +174,7 @@
       "description": "config-backup para Acme Corporation",
       "upload_date": "2025-11-05",
       "companyId": "co-01",
-      "linked_tickets": []
+      "linked_articles": []
     },
     {
       "id": "file-007",
@@ -183,7 +183,7 @@
       "description": "requirements para Acme Corporation",
       "upload_date": "2025-10-25",
       "companyId": "co-01",
-      "linked_tickets": []
+      "linked_articles": []
     },
     {
       "id": "file-008",
@@ -192,7 +192,7 @@
       "description": "database-schema para Acme Corporation",
       "upload_date": "2025-10-14",
       "companyId": "co-01",
-      "linked_tickets": []
+      "linked_articles": []
     },
     {
       "id": "file-009",
@@ -201,7 +201,7 @@
       "description": "access-logs para Global Tech Solutions",
       "upload_date": "2026-01-20",
       "companyId": "co-02",
-      "linked_tickets": ["issue-0004"]
+      "linked_articles": ["issue-0004"]
     },
     {
       "id": "file-010",
@@ -210,7 +210,7 @@
       "description": "permissions-matrix para Global Tech Solutions",
       "upload_date": "2026-01-15",
       "companyId": "co-02",
-      "linked_tickets": ["issue-0005"]
+      "linked_articles": ["issue-0005"]
     },
     {
       "id": "file-011",
@@ -219,7 +219,7 @@
       "description": "security-audit para Global Tech Solutions",
       "upload_date": "2026-01-10",
       "companyId": "co-02",
-      "linked_tickets": []
+      "linked_articles": []
     },
     {
       "id": "file-012",
@@ -228,7 +228,7 @@
       "description": "api-documentation para Innovation Labs Inc.",
       "upload_date": "2026-01-18",
       "companyId": "co-03",
-      "linked_tickets": ["issue-0007"]
+      "linked_articles": ["issue-0007"]
     },
     {
       "id": "file-013",
@@ -237,7 +237,7 @@
       "description": "performance-report para Innovation Labs Inc.",
       "upload_date": "2026-01-12",
       "companyId": "co-03",
-      "linked_tickets": ["issue-0008"]
+      "linked_articles": ["issue-0008"]
     },
     {
       "id": "file-014",
@@ -246,7 +246,7 @@
       "description": "widget-specs para Innovation Labs Inc.",
       "upload_date": "2026-01-08",
       "companyId": "co-03",
-      "linked_tickets": []
+      "linked_articles": []
     }
   ]
 }

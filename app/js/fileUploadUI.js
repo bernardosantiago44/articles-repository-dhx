@@ -50,7 +50,7 @@ const FileUploadUI = (function() {
         <!-- Instructions -->
         <div class="mb-4">
           <p class="text-sm text-gray-600">
-            Selecciona uno o más archivos para subir. Estos archivos estarán disponibles para adjuntar a tickets.
+            Selecciona uno o más archivos para subir. Estos archivos estarán disponibles para adjuntar a artículos.
           </p>
         </div>
         

@@ -23,7 +23,7 @@ const FilesGridHelper = (function() {
       'Tamaño',        // File size
       'Descripción',   // Description
       'Fecha',         // Upload date
-      'Tickets',       // Linked tickets
+      'Artículos',     // Linked articles
       'Acciones'       // Actions (view, download, edit, delete)
     ]);
     
@@ -72,7 +72,7 @@ const FilesGridHelper = (function() {
             file.size,
             file.description || '—',
             formatDate(file.upload_date),
-            renderTicketsCell(file.linked_tickets),
+            renderArticlesCell(file.linked_articles),
             renderActionsCell(file.id)
           ]);
         });
@@ -104,16 +104,16 @@ const FilesGridHelper = (function() {
   }
   
   /**
-   * Render the tickets cell
-   * @param {Array<string>} linkedTickets - Array of ticket IDs
+   * Render the articles cell
+   * @param {Array<string>} linkedArticles - Array of article IDs
    * @returns {string} HTML string for the cell
    */
-  function renderTicketsCell(linkedTickets) {
-    if (!linkedTickets || linkedTickets.length === 0) {
+  function renderArticlesCell(linkedArticles) {
+    if (!linkedArticles || linkedArticles.length === 0) {
       return '—';
     }
     
-    return `<span style="color: #3b82f6; font-weight: 500;">${linkedTickets.length}</span>`;
+    return `<span style="color: #3b82f6; font-weight: 500;">${linkedArticles.length}</span>`;
   }
   
   /**
