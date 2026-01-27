@@ -228,20 +228,17 @@ var BulkTagEditorUI = (function() {
       // Presence indicator text
       var presenceText = presence.presentCount + '/' + totalArticles + ' artículos tienen esta etiqueta';
       
-      html += '<button class="bulk-tag-btn flex items-center justify-between p-4 border rounded-lg ' + actionBgClass + ' transition-colors cursor-pointer w-full text-left" ' +
-              'data-tag-id="' + tag.id + '" data-action="' + presence.action + '">' +
-        '<div class="flex items-center space-x-3">' +
-          '<span class="w-3 h-3 rounded-full ' + actionIndicatorClass + '"></span>' +
-          '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white" ' +
-                'style="background-color: ' + tag.color + ';">' +
-            escapeHtml(tag.name) +
-          '</span>' +
-        '</div>' +
-        '<div class="text-right">' +
-          '<div class="text-sm text-gray-600">' + presenceText + '</div>' +
-          '<div class="text-xs text-gray-500 mt-1">' + actionText + '</div>' +
-        '</div>' +
-      '</button>';
+      html += `<button class="bulk-tag-btn flex items-center justify-between p-4 border rounded-lg ${actionBgClass} transition-colors cursor-pointer w-full text-left" ` +
+              `data-tag-id="${tag.id}" data-action="${presence.action}">
+        <div class="flex items-center space-x-3">
+          <span class="w-3 h-3 rounded-full ${actionIndicatorClass}"></span>
+          ${renderTagBadge(tag)}
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-gray-600">${presenceText}</div>
+          <div class="text-xs text-gray-500 mt-1">${actionText}</div>
+        </div>
+      </button>`;
     });
     
     html += '</div>';

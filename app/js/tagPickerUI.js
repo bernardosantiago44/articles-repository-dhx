@@ -26,8 +26,13 @@ var TagPickerUI = (function() {
     currentPage: 1,
     tagsPerPage: 10,
     pickerOverlay: null,
-    onSelectionCallback: null
+    onSelectionCallback: null,
+    searchListenerAttached: false,  // Listener guard to prevent duplication
+    searchDebounceTimer: null       // Debounce timer for search input
   };
+  
+  // Constants
+  var TAG_SEARCH_DEBOUNCE_DELAY = 300; // milliseconds
   
   /**
    * Open the tag picker
@@ -168,10 +173,7 @@ var TagPickerUI = (function() {
                  data-tag-id="${tag.id}" 
                  ${isSelected ? 'checked' : ''} />
           <div class="ml-3 flex items-center space-x-3 flex-1">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" 
-                  style="background-color: ${tag.color};">
-              ${escapeHtml(tag.name)}
-            </span>
+            ${renderTagBadge(tag)}
             <span class="text-sm text-gray-600">${escapeHtml(tag.description || '')}</span>
           </div>
         </label>
@@ -218,11 +220,21 @@ var TagPickerUI = (function() {
    * Attach event listeners to tag picker elements
    */
   function attachTagPickerEventListeners() {
-    // Search input
+    // Search input - with listener guard and debounce
     var searchInput = document.getElementById('tag-picker-search');
-    if (searchInput) {
+    if (searchInput && !tagPickerState.searchListenerAttached) {
+      tagPickerState.searchListenerAttached = true;
       searchInput.addEventListener('input', function() {
-        handleSearch(searchInput.value);
+        // Clear any existing debounce timer
+        if (tagPickerState.searchDebounceTimer) {
+          clearTimeout(tagPickerState.searchDebounceTimer);
+        }
+        
+        // Set a new debounce timer
+        var currentValue = searchInput.value;
+        tagPickerState.searchDebounceTimer = setTimeout(function() {
+          handleSearch(currentValue);
+        }, TAG_SEARCH_DEBOUNCE_DELAY);
       });
     }
     
@@ -388,6 +400,13 @@ var TagPickerUI = (function() {
     tagPickerState.searchQuery = '';
     tagPickerState.currentPage = 1;
     tagPickerState.onSelectionCallback = null;
+    tagPickerState.searchListenerAttached = false; // Reset listener guard
+    
+    // Clear any pending debounce timer
+    if (tagPickerState.searchDebounceTimer) {
+      clearTimeout(tagPickerState.searchDebounceTimer);
+      tagPickerState.searchDebounceTimer = null;
+    }
   }
   
   /**

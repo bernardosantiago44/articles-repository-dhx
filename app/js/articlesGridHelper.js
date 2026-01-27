@@ -77,6 +77,9 @@ function initializeArticlesGrid(gridCell, articlesData) {
   // Initialize the grid
   articlesGrid.init();
   
+  // Enable smart rendering to reduce DOM thrashing during filtering
+  articlesGrid.enableSmartRendering(true);
+  
   // Add footer with pagination
   articlesGrid.attachFooter([
     "<div id='articles_grid_recinfoArea' style='width:100%;height:100%'></div>",

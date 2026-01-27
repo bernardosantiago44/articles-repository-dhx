@@ -599,6 +599,9 @@ function onCompanyChange(companyId) {
 function loadArticlesForCompany(companyId) {
   return ArticleService.getArticles(companyId)
     .then(function(articles) {
+      // Precompute search index for O(n) filtering performance
+      GridFilterService.precomputeSearchIndex(articles);
+      
       // Store all articles for filtering
       appState.allArticles = articles;
       

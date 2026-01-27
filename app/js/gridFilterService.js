@@ -127,8 +127,37 @@ var GridFilterService = (function() {
   }
   
   /**
+   * Precompute normalized search strings for all articles
+   * Creates _tagSearchString (e.g., "|taga|tagb|") and _searchableText for O(n) filtering
+   * @param {Array<Object>} articles - Array of article objects with resolved tags
+   */
+  function precomputeSearchIndex(articles) {
+    if (!articles || !Array.isArray(articles)) return;
+    
+    articles.forEach(function(article) {
+      // Build normalized tag search string: "|tag1|tag2|tag3|"
+      var tagNames = [];
+      if (article.tags && Array.isArray(article.tags)) {
+        tagNames = article.tags.map(function(tag) {
+          return (tag && tag.name) ? tag.name.toLowerCase() : '';
+        }).filter(function(name) { return name !== ''; });
+      }
+      article._tagSearchString = '|' + tagNames.join('|') + '|';
+      
+      // Build combined searchable text for single indexOf check
+      var parts = [
+        (article.title || '').toLowerCase(),
+        (article.description || '').toLowerCase(),
+        (article.clientComments || '').toLowerCase(),
+        article._tagSearchString
+      ];
+      article._searchableText = parts.join(' ');
+    });
+  }
+  
+  /**
    * Check if an article matches the text search query
-   * Searches across: Title, Description, Client Comments, Tag Names
+   * Uses precomputed _searchableText for O(n) filtering
    * @param {Object} article - Article object with resolved tags
    * @param {string} query - Search query (lowercase)
    * @returns {boolean} True if article matches
@@ -136,26 +165,37 @@ var GridFilterService = (function() {
   function matchesSearchQuery(article, query) {
     if (!query) return true;
     
+    // Use precomputed searchable text if available (O(1) lookup)
+    if (article._searchableText) {
+      return article._searchableText.indexOf(query) !== -1;
+    }
+    
+    // Fallback to individual field search if index not built
     // Search in title
-    if (article.title && article.title.toLowerCase().includes(query)) {
+    if (article.title && article.title.toLowerCase().indexOf(query) !== -1) {
       return true;
     }
     
     // Search in description
-    if (article.description && article.description.toLowerCase().includes(query)) {
+    if (article.description && article.description.toLowerCase().indexOf(query) !== -1) {
       return true;
     }
     
     // Search in client comments
-    if (article.clientComments && article.clientComments.toLowerCase().includes(query)) {
+    if (article.clientComments && article.clientComments.toLowerCase().indexOf(query) !== -1) {
       return true;
     }
     
-    // Search in tag names
+    // Search in tag names using precomputed string if available, otherwise iterate
+    if (article._tagSearchString) {
+      return article._tagSearchString.indexOf(query) !== -1;
+    }
+    
+    // Fallback: iterate tags (slower)
     if (article.tags && Array.isArray(article.tags)) {
       for (var i = 0; i < article.tags.length; i++) {
         var tag = article.tags[i];
-        if (tag && tag.name && tag.name.toLowerCase().includes(query)) {
+        if (tag && tag.name && tag.name.toLowerCase().indexOf(query) !== -1) {
           return true;
         }
       }
@@ -269,6 +309,7 @@ var GridFilterService = (function() {
     getFilterState: getFilterState,
     hasActiveFilters: hasActiveFilters,
     filterArticles: filterArticles,
-    setSearchDebounceDelay: setSearchDebounceDelay
+    setSearchDebounceDelay: setSearchDebounceDelay,
+    precomputeSearchIndex: precomputeSearchIndex
   };
 })();
