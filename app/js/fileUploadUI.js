@@ -26,7 +26,7 @@ const FileUploadUI = (function() {
     }
     
     currentWindow = new dhtmlXWindows();
-    const uploadWindow = currentWindow.createWindow('file_upload_window', 0, 0, 640, 520);
+    const uploadWindow = currentWindow.createWindow('file_upload_window', 0, 0, 640, 640);
     uploadWindow.setText('Subir archivo');
     uploadWindow.centerOnScreen();
     uploadWindow.button('minmax').hide();
