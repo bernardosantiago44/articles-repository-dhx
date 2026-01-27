@@ -33,6 +33,8 @@ var appState = {
   articlesGrid: null,
   companyCombo: null,
   sidebarCell: null,
+  filesTab: null,
+  filesTabInitialized: false,
   // New filter-related state
   allArticles: [],           // All articles for the current company (unfiltered)
   filteredArticles: [],      // Filtered articles displayed in grid
@@ -172,6 +174,9 @@ var files = tabbar.cells('files');
 
 tabbar.addTab('images', 'Imágenes');
 var images = tabbar.cells('images');
+
+// Store global reference to files tab for later initialization
+appState.filesTab = files;
 
 // ============================================================================
 // Initialize Application
@@ -592,6 +597,26 @@ function onCompanyChange(companyId) {
 }
 
 /**
+ * Initialize the Files tab for the selected company
+ * @param {string} companyId - Company ID
+ */
+function initializeFilesTab(companyId) {
+  if (!appState.filesTab) {
+    console.error('Files tab not available');
+    return;
+  }
+  
+  // Initialize files tab only once
+  if (!appState.filesTabInitialized) {
+    FilesTabManager.initializeFilesTab(appState.filesTab, companyId);
+    appState.filesTabInitialized = true;
+  } else {
+    // Update company if already initialized
+    FilesTabManager.updateCompany(companyId);
+  }
+}
+
+/**
  * Load articles for a specific company and populate the grid
  * @param {string} companyId - Company ID to load articles for
  * @returns {Promise} Promise that resolves when articles are loaded
@@ -644,6 +669,9 @@ function loadArticlesForCompany(companyId) {
       appState.articlesGrid.attachEvent('onRowSelect', function(rowId) {
         onArticleSelect(rowId);
       });
+      
+      // Initialize Files tab with current company
+      initializeFilesTab(companyId);
       
       main_content.progressOff();
       return articles;
