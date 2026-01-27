@@ -79,17 +79,12 @@ header_trailing.fixSize(1, 0);
 var header_toolbar = header_trailing.attachToolbar();
 header_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
 header_toolbar.addButton('new_article', 1, 'Nuevo artículo');
-header_toolbar.addSeparator('sep1', 2);
-header_toolbar.addButton('toggle_user_role', 3, 'Cambiar a Usuario Regular');
-header_toolbar.setItemToolTip('toggle_user_role', 'Cambiar entre Admin y Usuario Regular');
 
 // Toolbar Click Handler
 header_toolbar.attachEvent('onClick', function(id) {
   if (id === 'new_article') {
     openNewArticleForm();
-  } else if (id === 'toggle_user_role') {
-    toggleUserRole();
-  }
+  } 
 });
 
 main_layout.setSizes();
@@ -129,11 +124,11 @@ grid_sidebar_layout.hideHeader();
 // Grid Toolbar Area (various actions)
 var grid_toolbar = grid_sidebar_layout.attachToolbar();
 grid_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
-grid_toolbar.addButton('manage_tags', 1, 'Administrar Etiquetas');
+grid_toolbar.addButton('clear_filters', 1, 'Limpiar Filtros');
 grid_toolbar.addSeparator('sep_bulk', 2);
 grid_toolbar.addButton('bulk_edit_tags', 3, 'Editar Etiquetas (Selección)');
 grid_toolbar.addSeparator('sep_clear', 4);
-grid_toolbar.addButton('clear_filters', 5, 'Limpiar Filtros');
+grid_toolbar.addButton('manage_tags', 5, 'Administrar Etiquetas');
 
 grid_toolbar.setItemToolTip('manage_tags', 'Administrar las etiquetas de la empresa');
 grid_toolbar.setItemToolTip('bulk_edit_tags', 'Editar etiquetas de los artículos seleccionados');
@@ -212,8 +207,12 @@ function initializeAdminView() {
         throw new Error('No companies found');
       }
       
-      // Create filter form with company combo picker
+      // Create filter form 
       createGridFilters(companies);
+
+      // Attach company combo to header bar
+      var companyCombo = createCompanyComboOptions(companies);
+      header_trailing.attachHTMLString(companyCombo);
       
       // Set initial company (first company)
       appState.selectedCompanyId = companies[0].id;
@@ -244,7 +243,8 @@ function initializeRegularUserView() {
   grid_toolbar.hideItem('sep_bulk');
   
   // Regular users have a fixed company
-  appState.selectedCompanyId = UserService.getCurrentUserCompanyId();
+  const companyId = UserService.getCurrentUserCompanyId();
+  appState.selectedCompanyId = companyId;
   
   if (!appState.selectedCompanyId) {
     main_content.progressOff();
@@ -257,6 +257,15 @@ function initializeRegularUserView() {
   
   // Create simplified filter form for regular users (no company picker)
   createFilterFormForRegularUser();
+
+  // Add the company title to the header bar
+  ArticleService.getCompanyById(companyId)
+    .then(function(company) {
+      if (company) {
+        var companyTitleHtml = createCompanyTitleHtml(company.name);
+        header_trailing.attachHTMLString(companyTitleHtml);
+      }
+    });
   
   // Load articles for user's company
   loadArticlesForCompany(appState.selectedCompanyId)
@@ -271,17 +280,14 @@ function initializeRegularUserView() {
 }
 
 /**
- * Create and configure the company combo picker for administrators
- * Also creates the advanced filter controls
+ * Create and configure the advanced filter controls
+ * No admin company picker or admin-specific controls
  * @param {Array<Company>} companies - List of companies
  */
 function createGridFilters(companies) {
   // Create HTML container for all filters
   const filterHtml = createFilterContainerHtml(companies);
   filters_container.attachHTMLString(filterHtml);
-
-  const companyComboHtml = createCompanyComboOptions(companies);
-  header_trailing.attachHTMLString(companyComboHtml);
   
   // Initialize all filter controls after DOM is ready
   requestAnimationFrame(function() {
@@ -326,6 +332,14 @@ if (companies && companies.length > 0) {
     '</div>';
   }
   return companyPickerHtml;
+}
+
+function createCompanyTitleHtml(companyName) {
+  return '<div class="p-4 space-y-3">' +
+    '<div class="flex items-center gap-2">' +
+      '<span class="text-sm text-gray-700 font-medium">Empresa: ' + companyName + '</span>' +
+    '</div>' +
+  '</div>';
 }
 
 /**
@@ -734,41 +748,6 @@ function onArticleSelect(articleId) {
         '<div style="padding: 20px; color: #ff4d4f;">Error al cargar detalles del artículo</div>'
       );
     });
-}
-
-/**
- * Toggle between Admin and Regular User roles (for testing)
- */
-function toggleUserRole() {
-  var previousUser = appState.currentUser;
-  var newUser = UserService.toggleUserRole();
-  
-  // Update toolbar button text
-  if (newUser.role === 'admin') {
-    header_toolbar.setItemText('toggle_user_role', 'Cambiar a Usuario Regular');
-  } else {
-    header_toolbar.setItemText('toggle_user_role', 'Cambiar a Administrador');
-  }
-  
-  // Show confirmation
-  dhtmlx.confirm({
-    title: 'Rol cambiado',
-    text: 'Cambiado de ' + previousUser.role + ' a ' + newUser.role + '. La aplicación se reiniciará.',
-    callback: function(result) {
-      if (result) {
-        // Reload the application with new user role
-        window.location.reload();
-      } else {
-        // Revert the change
-        UserService.toggleUserRole();
-        if (previousUser.role === 'admin') {
-          header_toolbar.setItemText('toggle_user_role', 'Cambiar a Usuario Regular');
-        } else {
-          header_toolbar.setItemText('toggle_user_role', 'Cambiar a Administrador');
-        }
-      }
-    }
-  });
 }
 
 /**

@@ -120,13 +120,6 @@ const FilesTabManager = (function() {
             >
               Subir archivo
             </button>
-            
-            <button 
-              id="files-admin-btn"
-              class="px-4 py-2 bg-white text-gray-700 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Administrador
-            </button>
           </div>
         </div>
       </div>
@@ -141,7 +134,6 @@ const FilesTabManager = (function() {
     const viewCardBtn = document.getElementById('files-view-card-btn');
     const viewListBtn = document.getElementById('files-view-list-btn');
     const uploadBtn = document.getElementById('files-upload-btn');
-    const adminBtn = document.getElementById('files-admin-btn');
     
     // Search input
     if (searchInput) {
@@ -168,16 +160,6 @@ const FilesTabManager = (function() {
     if (uploadBtn) {
       uploadBtn.addEventListener('click', () => {
         openUploadModal();
-      });
-    }
-    
-    // Admin button
-    if (adminBtn) {
-      adminBtn.addEventListener('click', () => {
-        dhtmlx.message({
-          type: 'info',
-          text: 'Configuración de administrador (próximamente)'
-        });
       });
     }
   }
