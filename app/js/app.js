@@ -13,6 +13,16 @@
 window.dhx4.skin = 'material';
 
 // ============================================================================
+// Layout Configuration Constants
+// ============================================================================
+
+var LAYOUT_CONFIG = {
+  HEADER_HEIGHT: '80',
+  FILTERS_SECTION_HEIGHT: '120',
+  SIDEBAR_WIDTH: '350'
+};
+
+// ============================================================================
 // Global State Management
 // ============================================================================
 
@@ -22,7 +32,15 @@ var appState = {
   selectedArticleId: null,
   articlesGrid: null,
   companyCombo: null,
-  sidebarCell: null
+  sidebarCell: null,
+  // New filter-related state
+  allArticles: [],           // All articles for the current company (unfiltered)
+  filteredArticles: [],      // Filtered articles displayed in grid
+  filterForm: null,          // DHTMLX Form for filters
+  statusCombo: null,         // Status filter combo
+  startDateCalendar: null,   // Start date calendar
+  endDateCalendar: null,     // End date calendar
+  selectedFilterTags: []     // Tags selected for filtering
 };
 
 // ============================================================================
@@ -31,9 +49,9 @@ var appState = {
 
 var main_layout = new dhtmlXLayoutObject(document.body, '2E');
 
-// Header Section (80px height)
+// Header Section
 var header = main_layout.cells('a');
-header.setHeight('80');
+header.setHeight(LAYOUT_CONFIG.HEADER_HEIGHT);
 header.fixSize(0, 1);
 
 var header_stack = header.attachLayout('2U');
@@ -94,7 +112,7 @@ var articles_layout = articles.attachLayout('2E');
 // ============================================================================
 
 var filters_container = articles_layout.cells('a');
-filters_container.setHeight('60');
+filters_container.setHeight(LAYOUT_CONFIG.FILTERS_SECTION_HEIGHT);
 filters_container.hideHeader();
 filters_container.fixSize(0, 1);
 
@@ -109,11 +127,22 @@ grid_sidebar_layout.hideHeader();
 var grid_toolbar = grid_sidebar_layout.attachToolbar();
 grid_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
 grid_toolbar.addButton('manage_tags', 1, 'Administrar Etiquetas');
+grid_toolbar.addSeparator('sep_bulk', 2);
+grid_toolbar.addButton('bulk_edit_tags', 3, 'Editar Etiquetas (Selección)');
+grid_toolbar.addSeparator('sep_clear', 4);
+grid_toolbar.addButton('clear_filters', 5, 'Limpiar Filtros');
 
-grid_toolbar.setItemToolTip('manage_tags', 'Refrescar la lista de artículos');
+grid_toolbar.setItemToolTip('manage_tags', 'Administrar las etiquetas de la empresa');
+grid_toolbar.setItemToolTip('bulk_edit_tags', 'Editar etiquetas de los artículos seleccionados');
+grid_toolbar.setItemToolTip('clear_filters', 'Limpiar todos los filtros');
+
 grid_toolbar.attachEvent('onClick', function(id) {
   if (id === 'manage_tags') {
     openTagManager();
+  } else if (id === 'bulk_edit_tags') {
+    openBulkTagEditor();
+  } else if (id === 'clear_filters') {
+    clearAllFilters();
   }
 });
 
@@ -124,9 +153,9 @@ var grid_sidebar_split = grid_sidebar_layout.attachLayout('2U');
 var grid_cell = grid_sidebar_split.cells('a');
 grid_cell.hideHeader();
 
-// Sidebar Cell (300-400px width)
+// Sidebar Cell
 var sidebar_cell = grid_sidebar_split.cells('b');
-sidebar_cell.setWidth('350');
+sidebar_cell.setWidth(LAYOUT_CONFIG.SIDEBAR_WIDTH);
 sidebar_cell.hideHeader();
 sidebar_cell.fixSize(0, 0);
 appState.sidebarCell = sidebar_cell;
@@ -177,12 +206,11 @@ function initializeAdminView() {
         throw new Error('No companies found');
       }
       
-      // Create company combo picker
+      // Create filter form with company combo picker
       createCompanyCombo(companies);
       
       // Set initial company (first company)
       appState.selectedCompanyId = companies[0].id;
-      appState.companyCombo.selectOption(0);
       
       // Load articles for the selected company
       return loadArticlesForCompany(appState.selectedCompanyId);
@@ -204,7 +232,10 @@ function initializeRegularUserView() {
   // Hide the "Nuevo artículo" button for regular users
   header_toolbar.hideItem('new_article');
   // Hide the "Administrar Etiquetas" button for regular users
-  header_toolbar.hideItem('manage_tags');
+  grid_toolbar.hideItem('manage_tags');
+  // Hide the "Editar Etiquetas (Selección)" button for regular users (Admin-only feature)
+  grid_toolbar.hideItem('bulk_edit_tags');
+  grid_toolbar.hideItem('sep_bulk');
   
   // Regular users have a fixed company
   appState.selectedCompanyId = UserService.getCurrentUserCompanyId();
@@ -218,8 +249,8 @@ function initializeRegularUserView() {
     return;
   }
   
-  // Hide company picker for regular users
-  filters_container.attachHTMLString('<div style="padding: 20px; font-size: 14px; color: #595959;">Vista de usuario regular</div>');
+  // Create simplified filter form for regular users (no company picker)
+  createFilterFormForRegularUser();
   
   // Load articles for user's company
   loadArticlesForCompany(appState.selectedCompanyId)
@@ -235,45 +266,294 @@ function initializeRegularUserView() {
 
 /**
  * Create and configure the company combo picker for administrators
+ * Also creates the advanced filter controls
  * @param {Array<Company>} companies - List of companies
  */
 function createCompanyCombo(companies) {
-  var formData = [
-    { 
-      type: "settings", 
-      position: "label-left", 
-      labelWidth: 80, 
-      inputWidth: 300, 
-      offsetLeft: 10, 
-      offsetTop: 10 
-    },
-    { 
-      type: "combo", 
-      name: "company", 
-      label: "Empresa", 
-      options: companies.map(function(company, index) {
-        return {
-          value: company.id,
-          text: company.name,
-          selected: index === 0
-        };
-      })
-    },
-    { type: "newcolumn" },
-    { 
-      type: "input", 
-      name: "search", 
-      label: "Buscar", 
-      inputWidth: 320 
+  // Create HTML container for all filters
+  var filterHtml = createFilterContainerHtml(companies);
+  filters_container.attachHTMLString(filterHtml);
+  
+  // Initialize all filter controls after DOM is ready
+  requestAnimationFrame(function() {
+    initializeFilterControls(companies, true);
+  });
+}
+
+/**
+ * Create filter form for regular users (no company picker)
+ */
+function createFilterFormForRegularUser() {
+  // Create HTML container for filters (without company picker)
+  var filterHtml = createFilterContainerHtml(null);
+  filters_container.attachHTMLString(filterHtml);
+  
+  // Initialize filter controls after DOM is ready
+  requestAnimationFrame(function() {
+    initializeFilterControls(null, false);
+  });
+}
+
+/**
+ * Create the HTML for the filter container
+ * @param {Array<Company>|null} companies - Companies array for admin, null for regular users
+ * @returns {string} HTML string for filter container
+ */
+function createFilterContainerHtml(companies) {
+  var companyPickerHtml = '';
+  
+  if (companies && companies.length > 0) {
+    var optionsHtml = companies.map(function(company, index) {
+      return '<option value="' + company.id + '"' + (index === 0 ? ' selected' : '') + '>' + company.name + '</option>';
+    }).join('');
+    
+    companyPickerHtml = '<div class="flex items-center gap-2">' +
+      '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Empresa:</label>' +
+      '<select id="filter-company" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[200px]">' +
+        optionsHtml +
+      '</select>' +
+    '</div>';
+  } else {
+    companyPickerHtml = '<div class="flex items-center gap-2">' +
+      '<span class="text-sm text-gray-500 italic">Vista de usuario regular</span>' +
+    '</div>';
+  }
+  
+  return '<div class="p-4 space-y-3">' +
+    '<div class="flex flex-wrap items-center gap-4">' +
+      companyPickerHtml +
+      '<div class="flex items-center gap-2">' +
+        '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Buscar:</label>' +
+        '<input type="text" id="filter-search" placeholder="Buscar en título, descripción, comentarios, etiquetas..." ' +
+               'class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[320px]" />' +
+      '</div>' +
+      '<div class="flex items-center gap-2">' +
+        '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Estado:</label>' +
+        '<select id="filter-status" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">' +
+          '<option value="">Todos</option>' +
+          '<option value="Abierto">Abierto</option>' +
+          '<option value="En progreso">En progreso</option>' +
+          '<option value="Esperando">Esperando</option>' +
+          '<option value="Cerrado">Cerrado</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<div class="flex flex-wrap items-center gap-4">' +
+      '<div class="flex items-center gap-2">' +
+        '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Fecha inicio:</label>' +
+        '<input type="date" id="filter-date-start" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" />' +
+      '</div>' +
+      '<div class="flex items-center gap-2">' +
+        '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Fecha fin:</label>' +
+        '<input type="date" id="filter-date-end" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" />' +
+      '</div>' +
+      '<div class="flex items-center gap-2">' +
+        '<label class="text-sm font-medium text-gray-700 whitespace-nowrap">Etiquetas:</label>' +
+        '<button id="filter-tags-btn" class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm flex items-center gap-2">' +
+          '<span id="filter-tags-count">Todas</span>' +
+          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>' +
+          '</svg>' +
+        '</button>' +
+      '</div>' +
+      '<div id="filter-active-indicator" style="display: none;" class="text-sm text-blue-600 font-medium">' +
+        '● Filtros activos' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/**
+ * Initialize filter controls and attach event listeners
+ * @param {Array<Company>|null} companies - Companies array for admin
+ * @param {boolean} isAdmin - Whether user is admin
+ */
+function initializeFilterControls(companies, isAdmin) {
+  // Company picker (admin only)
+  if (isAdmin && companies) {
+    var companySelect = document.getElementById('filter-company');
+    if (companySelect) {
+      companySelect.addEventListener('change', function() {
+        onCompanyChange(companySelect.value);
+      });
     }
-  ];
+  }
   
-  var filters_form = filters_container.attachForm(formData);
-  appState.companyCombo = filters_form.getCombo('company');
+  // Search input with debounce
+  var searchInput = document.getElementById('filter-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      GridFilterService.setSearchQuery(searchInput.value, applyFiltersToGrid);
+    });
+  }
   
-  // Attach event listener for company change
-  appState.companyCombo.attachEvent('onChange', function(value) {
-    onCompanyChange(value);
+  // Status filter
+  var statusSelect = document.getElementById('filter-status');
+  if (statusSelect) {
+    statusSelect.addEventListener('change', function() {
+      GridFilterService.setStatusFilter(statusSelect.value || null);
+      applyFiltersToGrid();
+    });
+  }
+  
+  // Date filters
+  var startDateInput = document.getElementById('filter-date-start');
+  var endDateInput = document.getElementById('filter-date-end');
+  
+  if (startDateInput) {
+    startDateInput.addEventListener('change', function() {
+      var endDate = endDateInput ? endDateInput.value : null;
+      GridFilterService.setDateRangeFilter(startDateInput.value || null, endDate || null);
+      applyFiltersToGrid();
+    });
+  }
+  
+  if (endDateInput) {
+    endDateInput.addEventListener('change', function() {
+      var startDate = startDateInput ? startDateInput.value : null;
+      GridFilterService.setDateRangeFilter(startDate || null, endDateInput.value || null);
+      applyFiltersToGrid();
+    });
+  }
+  
+  // Tag filter button
+  var tagsBtn = document.getElementById('filter-tags-btn');
+  if (tagsBtn) {
+    tagsBtn.addEventListener('click', function() {
+      openTagFilterPicker();
+    });
+  }
+  
+  // Initialize the filter active indicator to hidden state
+  updateFilterActiveIndicator();
+}
+
+/**
+ * Open the tag picker for filtering
+ */
+function openTagFilterPicker() {
+  if (!appState.selectedCompanyId) {
+    return;
+  }
+  
+  TagPickerUI.openTagPicker(
+    appState.selectedCompanyId,
+    appState.selectedFilterTags.map(function(tag) { return tag.id; }),
+    function(selectedTags) {
+      appState.selectedFilterTags = selectedTags;
+      
+      // Update the button text
+      var tagsCountSpan = document.getElementById('filter-tags-count');
+      if (tagsCountSpan) {
+        if (selectedTags.length === 0) {
+          tagsCountSpan.textContent = 'Todas';
+        } else {
+          tagsCountSpan.textContent = selectedTags.length + ' seleccionada' + (selectedTags.length !== 1 ? 's' : '');
+        }
+      }
+      
+      // Update filter service and apply
+      GridFilterService.setTagFilter(selectedTags.map(function(tag) { return tag.id; }));
+      applyFiltersToGrid();
+    }
+  );
+}
+
+/**
+ * Apply current filters to the grid
+ */
+function applyFiltersToGrid() {
+  if (!appState.allArticles) {
+    return;
+  }
+  
+  // Filter articles
+  appState.filteredArticles = GridFilterService.filterArticles(appState.allArticles);
+  
+  // Update filter active indicator
+  updateFilterActiveIndicator();
+  
+  // Rebuild grid with filtered articles
+  rebuildGridWithArticles(appState.filteredArticles);
+}
+
+/**
+ * Update the filter active indicator visibility
+ */
+function updateFilterActiveIndicator() {
+  var indicator = document.getElementById('filter-active-indicator');
+  if (indicator) {
+    if (GridFilterService.hasActiveFilters()) {
+      indicator.style.display = 'block';
+    } else {
+      indicator.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * Rebuild the grid with a new set of articles
+ * @param {Array<Object>} articles - Articles to display
+ */
+function rebuildGridWithArticles(articles) {
+  // Destroy existing grid
+  if (appState.articlesGrid) {
+    appState.articlesGrid.destructor();
+    appState.articlesGrid = null;
+  }
+  
+  // Initialize new grid with articles
+  appState.articlesGrid = initializeArticlesGrid(grid_cell, articles);
+  
+  // Attach row selection event
+  appState.articlesGrid.attachEvent('onRowSelect', function(rowId) {
+    onArticleSelect(rowId);
+  });
+  
+  // Clear sidebar if the selected article is no longer visible
+  if (appState.selectedArticleId) {
+    var stillVisible = articles.some(function(article) {
+      return article.id === appState.selectedArticleId;
+    });
+    
+    if (!stillVisible) {
+      appState.selectedArticleId = null;
+      appState.sidebarCell.attachHTMLString(ArticleDetailUI.renderEmptyState());
+    }
+  }
+}
+
+/**
+ * Clear all filters and reset the grid
+ */
+function clearAllFilters() {
+  // Clear filter service state
+  GridFilterService.clearAllFilters();
+  appState.selectedFilterTags = [];
+  
+  // Reset UI controls
+  var searchInput = document.getElementById('filter-search');
+  if (searchInput) searchInput.value = '';
+  
+  var statusSelect = document.getElementById('filter-status');
+  if (statusSelect) statusSelect.value = '';
+  
+  var startDateInput = document.getElementById('filter-date-start');
+  if (startDateInput) startDateInput.value = '';
+  
+  var endDateInput = document.getElementById('filter-date-end');
+  if (endDateInput) endDateInput.value = '';
+  
+  var tagsCountSpan = document.getElementById('filter-tags-count');
+  if (tagsCountSpan) tagsCountSpan.textContent = 'Todas';
+  
+  // Apply (which will show all articles)
+  applyFiltersToGrid();
+  
+  dhtmlx.message({
+    text: 'Filtros limpiados',
+    type: 'info',
+    expire: 2000
   });
 }
 
@@ -319,6 +599,37 @@ function onCompanyChange(companyId) {
 function loadArticlesForCompany(companyId) {
   return ArticleService.getArticles(companyId)
     .then(function(articles) {
+      // Precompute search index for O(n) filtering performance
+      GridFilterService.precomputeSearchIndex(articles);
+      
+      // Store all articles for filtering
+      appState.allArticles = articles;
+      
+      // Clear filters when changing company
+      GridFilterService.clearAllFilters();
+      appState.selectedFilterTags = [];
+      
+      // Reset filter UI if it exists
+      var searchInput = document.getElementById('filter-search');
+      if (searchInput) searchInput.value = '';
+      
+      var statusSelect = document.getElementById('filter-status');
+      if (statusSelect) statusSelect.value = '';
+      
+      var startDateInput = document.getElementById('filter-date-start');
+      if (startDateInput) startDateInput.value = '';
+      
+      var endDateInput = document.getElementById('filter-date-end');
+      if (endDateInput) endDateInput.value = '';
+      
+      var tagsCountSpan = document.getElementById('filter-tags-count');
+      if (tagsCountSpan) tagsCountSpan.textContent = 'Todas';
+      
+      updateFilterActiveIndicator();
+      
+      // Initially show all articles (no filters applied)
+      appState.filteredArticles = articles;
+      
       // Destroy existing grid if it exists
       // Note: destructor() handles cleanup including clearing data
       if (appState.articlesGrid) {
@@ -455,6 +766,90 @@ function openTagManager() {
         console.error('Error reloading articles after tag changes:', error);
       });
   });
+}
+
+/**
+ * Open the Bulk Tag Editor for selected articles (Admin only)
+ */
+function openBulkTagEditor() {
+  // Check if user is admin
+  if (!UserService.isAdministrator()) {
+    dhtmlx.alert({
+      title: 'Acceso denegado',
+      text: 'Solo los administradores pueden realizar edición masiva de etiquetas.'
+    });
+    return;
+  }
+  
+  // Check if a company is selected
+  if (!appState.selectedCompanyId) {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'Por favor seleccione una empresa primero.'
+    });
+    return;
+  }
+  
+  // Get selected row IDs from the grid
+  if (!appState.articlesGrid) {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'No hay artículos cargados.'
+    });
+    return;
+  }
+  
+  var selectedIds = appState.articlesGrid.getCheckedRows(0);
+  
+  if (!selectedIds || selectedIds === '') {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'Por favor seleccione al menos un artículo para editar etiquetas.'
+    });
+    return;
+  }
+  
+  // Convert to array (getSelectedRowId returns comma-separated string for multiselect)
+  var selectedIdsArray = selectedIds.split(',');
+  
+  // Fetch the full article objects for selected IDs using bulk fetch
+  ArticleService.getArticlesByIds(selectedIdsArray)
+    .then(function(selectedArticles) {
+      // Filter out any null results
+      var validArticles = selectedArticles.filter(function(article) {
+        return article !== null;
+      });
+      
+      if (validArticles.length === 0) {
+        dhtmlx.alert({
+          title: 'Error',
+          text: 'No se pudieron cargar los artículos seleccionados.'
+        });
+        return;
+      }
+      
+      // Open the bulk tag editor
+      BulkTagEditorUI.openBulkTagEditor(appState.selectedCompanyId, validArticles, function() {
+        // Callback when tags are updated - reload articles
+        loadArticlesForCompany(appState.selectedCompanyId)
+          .then(function() {
+            // If the currently selected article is one of the edited ones, refresh sidebar
+            if (appState.selectedArticleId && selectedIdsArray.indexOf(appState.selectedArticleId) !== -1) {
+              onArticleSelect(appState.selectedArticleId);
+            }
+          })
+          .catch(function(error) {
+            console.error('Error reloading articles after bulk tag update:', error);
+          });
+      });
+    })
+    .catch(function(error) {
+      console.error('Error fetching selected articles:', error);
+      dhtmlx.alert({
+        title: 'Error',
+        text: 'Error al cargar los artículos seleccionados.'
+      });
+    });
 }
 
 // ============================================================================
