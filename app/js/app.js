@@ -799,7 +799,7 @@ function openBulkTagEditor() {
     return;
   }
   
-  var selectedIds = appState.articlesGrid.getSelectedRowId();
+  var selectedIds = appState.articlesGrid.getCheckedRows(0);
   
   if (!selectedIds || selectedIds === '') {
     dhtmlx.alert({
