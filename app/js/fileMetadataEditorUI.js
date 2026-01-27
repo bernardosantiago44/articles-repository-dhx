@@ -27,7 +27,7 @@ const FileMetadataEditorUI = (function() {
         
         // Create DHTMLX Window
         if (currentWindow) {
-          currentWindow.close();
+          currentWindow.unload();
         }
         
         currentWindow = new dhtmlXWindows();
