@@ -12,6 +12,8 @@ const FilesTabManager = (function() {
   let currentCompanyId = null;
   let filesGrid = null;
   let filesCell = null;
+  let filesLayout = null;
+  let contentSection = null;
   let currentSearchTerm = '';
   let selectedFileIds = [];
   
@@ -25,7 +27,7 @@ const FilesTabManager = (function() {
     filesCell = tabCell;
     
     // Create layout for files tab
-    const filesLayout = tabCell.attachLayout('2E');
+    filesLayout = tabCell.attachLayout('2E');
     
     // Top section - Toolbar and search
     const topSection = filesLayout.cells('a');
@@ -34,7 +36,7 @@ const FilesTabManager = (function() {
     topSection.fixSize(0, 1);
     
     // Bottom section - Files display (grid or card view)
-    const contentSection = filesLayout.cells('b');
+    contentSection = filesLayout.cells('b');
     contentSection.hideHeader();
     
     // Attach top section content
@@ -191,9 +193,6 @@ const FilesTabManager = (function() {
     
     currentView = viewType;
     
-    // Get the content section
-    const contentCell = filesCell.cells('b').cells('b');
-    
     if (viewType === 'card') {
       // Detach grid and attach card view
       if (filesGrid) {
@@ -207,13 +206,13 @@ const FilesTabManager = (function() {
         : FileService.getFiles(currentCompanyId);
       
       dataPromise.then(files => {
-        contentCell.attachHTMLString(FilesCardViewUI.renderCardView(files));
+        contentSection.attachHTMLString(FilesCardViewUI.renderCardView(files));
       });
       
     } else {
       // Attach grid view
-      contentCell.detachObject(true);
-      filesGrid = FilesGridHelper.initializeGrid(contentCell, handleFileSelect);
+      contentSection.detachObject(true);
+      filesGrid = FilesGridHelper.initializeGrid(contentSection, handleFileSelect);
       loadFiles();
     }
     
@@ -249,14 +248,13 @@ const FilesTabManager = (function() {
   function loadFiles() {
     if (currentView === 'list' && filesGrid) {
       FilesGridHelper.loadFilesData(filesGrid, currentCompanyId, currentSearchTerm);
-    } else if (currentView === 'card') {
-      const contentCell = filesCell.cells('b').cells('b');
+    } else if (currentView === 'card' && contentSection) {
       const dataPromise = currentSearchTerm 
         ? FileService.searchFiles(currentCompanyId, currentSearchTerm)
         : FileService.getFiles(currentCompanyId);
       
       dataPromise.then(files => {
-        contentCell.attachHTMLString(FilesCardViewUI.renderCardView(files));
+        contentSection.attachHTMLString(FilesCardViewUI.renderCardView(files));
       });
     }
   }
