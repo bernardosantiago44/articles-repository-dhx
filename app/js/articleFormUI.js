@@ -39,9 +39,8 @@ var ArticleFormUI = (function() {
     }
     // Fallback if dataModels not loaded
     return [
-      { value: 'Abierto', text: 'Abierto' },
-      { value: 'En progreso', text: 'En progreso' },
-      { value: 'Esperando', text: 'Esperando' },
+      { value: 'Producción', text: 'Producción' },
+      { value: 'Borrador', text: 'Borrador' },
       { value: 'Cerrado', text: 'Cerrado' }
     ];
   }
@@ -437,7 +436,7 @@ var ArticleFormUI = (function() {
     return {
       title: formState.articleForm.getItemValue('title') || '',
       description: formState.articleForm.getItemValue('description') || '',
-      status: formState.articleForm.getItemValue('status') || 'Abierto',
+      status: formState.articleForm.getItemValue('status') || 'Producción',
       externalLink: formState.articleForm.getItemValue('externalLink') || '',
       clientComments: formState.articleForm.getItemValue('clientComments') || '',
       companyId: formState.companyId,
