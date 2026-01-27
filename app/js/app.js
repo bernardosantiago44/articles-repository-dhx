@@ -725,6 +725,7 @@ function onArticleSelect(articleId) {
       // Render article details in sidebar
       var detailHtml = ArticleDetailUI.renderArticleDetailSidebar(article, companyName, showEditButton);
       appState.sidebarCell.attachHTMLString(detailHtml);
+      lucide.createIcons();
       
       // Attach edit button event if admin
       // Note: Using requestAnimationFrame to ensure DOM is ready after attachHTMLString

@@ -63,19 +63,34 @@ const ArticleDetailUI = (function() {
     }
     
     return `
-      <a href="${externalLink}" target="_blank" style="
-        display: inline-block;
-        padding: 10px 20px;
-        background-color: #1890ff;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: background-color 0.2s;
-      " onmouseover="this.style.backgroundColor='#40a9ff'" onmouseout="this.style.backgroundColor='#1890ff'">
-        Abrir enlace externo
-      </a>
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          Enlace al ticket
+        </label>
+
+        <div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
+          <div class="flex items-center gap-2 text-sm text-gray-800 truncate">
+            <i data-lucide="external-link" class="h-4 w-4 text-gray-500"></i>
+
+            <a
+              href=${externalLink}
+              target="_blank"
+              class="truncate hover:underline"
+            >
+              ${externalLink}
+            </a>
+          </div>
+
+          <button
+            type="button"
+            class="ml-3 text-gray-500 hover:text-gray-700"
+            title="Copiar"
+            onclick="navigator.clipboard.writeText('${externalLink}')"
+          >
+            <i data-lucide="copy" class="h-5 w-5"></i>
+          </button>
+        </div>
+      </div>
     `;
   }
   

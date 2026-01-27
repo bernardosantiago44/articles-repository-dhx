@@ -31,7 +31,7 @@ const FileMetadataEditorUI = (function() {
         }
         
         currentWindow = new dhtmlXWindows();
-        const editWindow = currentWindow.createWindow('file_metadata_window', 0, 0, 500, 300);
+        const editWindow = currentWindow.createWindow('file_metadata_window', 0, 0, 500, 500);
         editWindow.setText('Editar descripción');
         editWindow.centerOnScreen();
         editWindow.button('minmax').hide();
