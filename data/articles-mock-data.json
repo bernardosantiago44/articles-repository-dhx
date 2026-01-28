@@ -248,5 +248,183 @@
       "companyId": "co-03",
       "linked_articles": []
     }
+  ],
+  "images": [
+    {
+      "id": "img-001",
+      "name": "ui-mockup.png",
+      "dimensions": "1920x1080",
+      "size": "426.6 KB",
+      "description": "UI mockup para la página principal de Acme Corporation",
+      "upload_date": "2026-01-14",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img001/400/225",
+      "linked_articles": ["issue-0001"]
+    },
+    {
+      "id": "img-002",
+      "name": "screenshot-error.png",
+      "dimensions": "1280x720",
+      "size": "312.4 KB",
+      "description": "Captura del error de autenticación reportado",
+      "upload_date": "2026-01-12",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img002/400/225",
+      "linked_articles": ["issue-0001", "issue-0002"]
+    },
+    {
+      "id": "img-003",
+      "name": "dashboard-design.jpg",
+      "dimensions": "2560x1440",
+      "size": "1.2 MB",
+      "description": "Diseño del dashboard para el nuevo módulo de reportes",
+      "upload_date": "2026-01-10",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img003/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-004",
+      "name": "logo-variaciones.png",
+      "dimensions": "800x600",
+      "size": "156.2 KB",
+      "description": "Variaciones del logo corporativo para diferentes fondos",
+      "upload_date": "2026-01-08",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img004/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-005",
+      "name": "workflow-diagram.png",
+      "dimensions": "1600x900",
+      "size": "287.3 KB",
+      "description": "Diagrama de flujo del proceso de aprobación",
+      "upload_date": "2026-01-05",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img005/400/225",
+      "linked_articles": ["issue-0002"]
+    },
+    {
+      "id": "img-006",
+      "name": "mobile-app-screens.jpg",
+      "dimensions": "1440x2560",
+      "size": "845.1 KB",
+      "description": "Pantallas de la aplicación móvil versión 2.0",
+      "upload_date": "2025-12-28",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img006/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-007",
+      "name": "infographic-stats.png",
+      "dimensions": "1200x800",
+      "size": "523.7 KB",
+      "description": "Infografía de estadísticas del Q4 2025",
+      "upload_date": "2025-12-20",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img007/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-008",
+      "name": "team-photo.jpg",
+      "dimensions": "3000x2000",
+      "size": "2.1 MB",
+      "description": "Foto del equipo de desarrollo 2025",
+      "upload_date": "2025-12-15",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img008/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-009",
+      "name": "permission-matrix-screenshot.png",
+      "dimensions": "1920x1080",
+      "size": "398.5 KB",
+      "description": "Captura de la matriz de permisos actual",
+      "upload_date": "2026-01-18",
+      "companyId": "co-02",
+      "thumbnail_url": "https://picsum.photos/seed/img009/400/225",
+      "linked_articles": ["issue-0003", "issue-0004"]
+    },
+    {
+      "id": "img-010",
+      "name": "api-architecture.png",
+      "dimensions": "2400x1350",
+      "size": "567.2 KB",
+      "description": "Diagrama de arquitectura de la API REST",
+      "upload_date": "2026-01-15",
+      "companyId": "co-02",
+      "thumbnail_url": "https://picsum.photos/seed/img010/400/225",
+      "linked_articles": ["issue-0006"]
+    },
+    {
+      "id": "img-011",
+      "name": "security-audit-chart.jpg",
+      "dimensions": "1600x1200",
+      "size": "445.8 KB",
+      "description": "Gráfico de resultados de auditoría de seguridad",
+      "upload_date": "2026-01-10",
+      "companyId": "co-02",
+      "thumbnail_url": "https://picsum.photos/seed/img011/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-012",
+      "name": "user-flow-diagram.png",
+      "dimensions": "1800x1000",
+      "size": "312.9 KB",
+      "description": "Diagrama de flujo de usuario para onboarding",
+      "upload_date": "2026-01-05",
+      "companyId": "co-02",
+      "thumbnail_url": "https://picsum.photos/seed/img012/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-013",
+      "name": "performance-dashboard.png",
+      "dimensions": "1920x1080",
+      "size": "478.3 KB",
+      "description": "Dashboard de métricas de rendimiento",
+      "upload_date": "2026-01-20",
+      "companyId": "co-03",
+      "thumbnail_url": "https://picsum.photos/seed/img013/400/225",
+      "linked_articles": ["issue-0008"]
+    },
+    {
+      "id": "img-014",
+      "name": "feature-wireframe.jpg",
+      "dimensions": "1440x900",
+      "size": "234.6 KB",
+      "description": "Wireframe para la nueva funcionalidad de exportación",
+      "upload_date": "2026-01-17",
+      "companyId": "co-03",
+      "thumbnail_url": "https://picsum.photos/seed/img014/400/225",
+      "linked_articles": ["issue-0007"]
+    },
+    {
+      "id": "img-015",
+      "name": "widget-mockups.png",
+      "dimensions": "2560x1440",
+      "size": "892.4 KB",
+      "description": "Mockups de los nuevos widgets del dashboard",
+      "upload_date": "2026-01-12",
+      "companyId": "co-03",
+      "thumbnail_url": "https://picsum.photos/seed/img015/400/225",
+      "linked_articles": ["issue-0008"]
+    },
+    {
+      "id": "img-016",
+      "name": "brand-guidelines.png",
+      "dimensions": "1200x800",
+      "size": "356.1 KB",
+      "description": "Guía de identidad visual de la marca",
+      "upload_date": "2026-01-08",
+      "companyId": "co-03",
+      "thumbnail_url": "https://picsum.photos/seed/img016/400/225",
+      "linked_articles": []
+    }
   ]
 }
