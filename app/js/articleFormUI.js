@@ -1,11 +1,20 @@
 /**
  * Article Form UI Module
  * Provides a unified form component for creating and editing articles
- * Uses DHTMLX 5.x dhtmlXForm within a dhtmlXWindow
+ * Uses HTML + Tailwind CSS within a dhtmlXWindow
+ * 
+ * Features:
+ * - Title, description, status, external link, client comments fields
+ * - Tag selection via TagPickerUI
+ * - Attach existing images/files with search functionality
+ * - Upload new images/files directly from the form
  * 
  * Dependencies:
  * - dataModels.js (for status configuration)
  * - articleService.js (for CRUD operations)
+ * - ImageService.js (for image operations)
+ * - FileService.js (for file operations)
+ * - TagPickerUI.js (for tag selection)
  */
 
 var ArticleFormUI = (function() {
@@ -16,10 +25,16 @@ var ArticleFormUI = (function() {
     currentMode: null,          // 'create' or 'edit'
     articleId: null,            // Article ID when editing
     articleWindow: null,        // DHTMLX Window instance
-    articleForm: null,          // DHTMLX Form instance
     companyId: null,            // Company ID for new articles
     onSaveCallback: null,       // Callback function after save
-    selectedTags: []            // Selected tags for the article
+    selectedTags: [],           // Selected tags for the article
+    attachedImages: [],         // Attached image IDs
+    attachedFiles: [],          // Attached file IDs
+    allImages: [],              // All available images for the company
+    allFiles: [],               // All available files for the company
+    imageSearchQuery: '',       // Current image search query
+    fileSearchQuery: '',        // Current file search query
+    activeMediaTab: 'images'    // Active tab in media section: 'images' or 'files'
   };
   
   /**
@@ -33,175 +48,23 @@ var ArticleFormUI = (function() {
       return Object.keys(articleStatusConfiguration).map(function(key) {
         return {
           value: key,
-          text: articleStatusConfiguration[key].label
+          text: articleStatusConfiguration[key].label,
+          color: articleStatusConfiguration[key].color
         };
       });
     }
     // Fallback if dataModels not loaded
     return [
-      { value: 'Abierto', text: 'Abierto' },
-      { value: 'En progreso', text: 'En progreso' },
-      { value: 'Esperando', text: 'Esperando' },
-      { value: 'Cerrado', text: 'Cerrado' }
+      { value: 'Abierto', text: 'Abierto', color: '#52c41a' },
+      { value: 'En progreso', text: 'En progreso', color: '#1890ff' },
+      { value: 'Esperando', text: 'Esperando', color: '#faad14' },
+      { value: 'Cerrado', text: 'Cerrado', color: '#8c8c8c' }
     ];
   }
   
   // Form window dimensions
-  var FORM_WINDOW_WIDTH = 750;
-  var FORM_WINDOW_HEIGHT = 750;
-  
-  /**
-   * Get available tag options with colors (LEGACY - for backward compatibility)
-   * @returns {Array} Array of tag objects {label, color}
-   * @deprecated Tags are now managed dynamically through TagPickerUI
-   */
-  function getAvailableTags() {
-    // This function is kept for backward compatibility but is no longer used
-    // Tags are now fetched dynamically from ArticleService.getTags()
-    return [];
-  }
-  
-  /**
-   * Generate checkbox name from tag label
-   * @param {string} tagLabel - Tag label
-   * @returns {string} Checkbox name
-   */
-  function getTagCheckboxName(tagLabel) {
-    return 'tag_' + tagLabel.replace(/\s+/g, '_').toLowerCase();
-  }
-  
-  /**
-   * Generate tag checkbox label HTML with color indicator
-   * @param {string} tagLabel - Tag label
-   * @param {string} tagColor - Tag color hex code
-   * @returns {string} HTML string for checkbox label
-   */
-  function generateTagLabelHtml(tagLabel, tagColor) {
-    return '<span style="display: inline-flex; align-items: center; gap: 6px;">' +
-           '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ' + tagColor + ';"></span>' +
-           tagLabel + '</span>';
-  }
-  
-  /**
-   * Get the form structure configuration for dhtmlXForm
-   * @param {string} mode - 'create' or 'edit'
-   * @returns {Array} Form structure configuration
-   */
-  function getFormStructure(mode) {
-    var buttonLabel = mode === 'create' ? 'Crear Artículo' : 'Guardar Cambios';
-    
-    return [
-      {
-        type: 'settings',
-        position: 'label-top',
-        labelWidth: 'auto',
-        inputWidth: '100%',
-        offsetLeft: 0,
-        offsetTop: 0
-      },
-      {
-        type: 'block',
-        width: '100%',
-        blockOffset: 0,
-        list: [
-          {
-            type: 'label',
-            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Título *</div>'
-          },
-          {
-            type: 'input',
-            name: 'title',
-            required: true,
-            inputWidth: '100%',
-            style: 'margin-bottom: 16px;'
-          },
-          {
-            type: 'label',
-            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Estado</div>'
-          },
-          {
-            type: 'combo',
-            name: 'status',
-            inputWidth: '100%',
-            options: getStatusOptions().map(function(opt, index) {
-              return {
-                value: opt.value,
-                text: opt.text,
-                selected: index === 0
-              };
-            }),
-            style: 'margin-bottom: 16px;'
-          },
-          {
-            type: 'label',
-            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Descripción del artículo *</div>'
-          },
-          {
-            type: 'input',
-            name: 'description',
-            required: true,
-            rows: 8,
-            inputWidth: '100%',
-            style: 'margin-bottom: 16px;'
-          },
-          {
-            type: 'label',
-            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Enlace Externo</div>'
-          },
-          {
-            type: 'input',
-            name: 'externalLink',
-            inputWidth: '100%',
-            style: 'margin-bottom: 16px;'
-          },
-          {
-            type: 'label',
-            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Comentarios del cliente</div>'
-          },
-          {
-            type: 'input',
-            name: 'clientComments',
-            rows: 6,
-            inputWidth: '100%',
-            style: 'margin-bottom: 16px;'
-          },
-          {
-            type: 'label',
-            label: '<div style="font-size: 13px; font-weight: 600; color: #262626; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Etiquetas</div>'
-          },
-          {
-            type: 'container',
-            name: 'tags_container',
-            inputWidth: '100%',
-            style: 'margin-bottom: 16px;'
-          },
-          {
-            type: 'block',
-            width: '100%',
-            blockOffset: 0,
-            list: [
-              {
-                type: 'button',
-                name: 'submit',
-                value: buttonLabel,
-                width: '100%'
-              },
-              {
-                type: 'newcolumn',
-                offset: 10
-              },
-              {
-                type: 'button',
-                name: 'cancel',
-                value: 'Cancelar',
-                width: '100%'
-              }
-            ]
-          }
-        ]
-      }
-    ];
-  }
+  var FORM_WINDOW_WIDTH = 900;
+  var FORM_WINDOW_HEIGHT = 850;
   
   /**
    * Create and configure the form window
@@ -216,7 +79,7 @@ var ArticleFormUI = (function() {
     // Window title based on mode
     var windowTitle = mode === 'create' ? 'Nuevo Artículo' : 'Editando: ' + articleId;
     
-    // Create and configure window (increased height to accommodate tags)
+    // Create and configure window
     var formWindow = dhxWins.createWindow('article_form_window', 0, 0, FORM_WINDOW_WIDTH, FORM_WINDOW_HEIGHT);
     formWindow.setText(windowTitle);
     formWindow.centerOnScreen();
@@ -228,120 +91,760 @@ var ArticleFormUI = (function() {
   }
   
   /**
+   * Render the complete HTML form
+   * @param {string} mode - 'create' or 'edit'
+   * @returns {string} HTML string for the form
+   */
+  function renderFormHtml(mode) {
+    var buttonLabel = mode === 'create' ? 'Crear Artículo' : 'Guardar Cambios';
+    var statusOptions = getStatusOptions();
+    
+    return `
+      <div class="h-full flex flex-col bg-white">
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <!-- Title Field -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Título <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="article-form-title"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ingresa el título del artículo"
+            />
+          </div>
+          
+          <!-- Status Field -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Estado
+            </label>
+            <select 
+              id="article-form-status"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              ${statusOptions.map(function(opt, index) {
+                return '<option value="' + escapeHtml(opt.value) + '"' + (index === 0 ? ' selected' : '') + '>' + escapeHtml(opt.text) + '</option>';
+              }).join('')}
+            </select>
+          </div>
+          
+          <!-- Description Field -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Descripción del artículo <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+              id="article-form-description"
+              rows="5"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              placeholder="Describe el artículo en detalle"
+            ></textarea>
+          </div>
+          
+          <!-- External Link Field -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Enlace Externo
+            </label>
+            <input 
+              type="url" 
+              id="article-form-external-link"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="https://example.com/issue"
+            />
+          </div>
+          
+          <!-- Client Comments Field -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Comentarios del cliente
+            </label>
+            <textarea 
+              id="article-form-client-comments"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              placeholder="Comentarios adicionales del cliente"
+            ></textarea>
+          </div>
+          
+          <!-- Tags Section -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Etiquetas
+            </label>
+            <div 
+              id="article-form-tags-container"
+              class="border border-gray-300 rounded-md p-3 min-h-[60px] cursor-pointer hover:border-blue-400 transition-colors"
+            >
+              <div id="article-form-selected-tags" class="flex flex-wrap gap-2 min-h-[30px]">
+                <span class="text-gray-400 text-sm">Ninguna etiqueta seleccionada</span>
+              </div>
+              <div class="mt-2 text-xs text-gray-500">
+                Haz clic para seleccionar etiquetas
+              </div>
+            </div>
+          </div>
+          
+          <!-- Media Attachments Section -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
+              Archivos Adjuntos
+            </label>
+            
+            <!-- Media Tabs -->
+            <div class="border border-gray-300 rounded-md overflow-hidden">
+              <!-- Tab Headers -->
+              <div class="flex border-b border-gray-300">
+                <button 
+                  id="article-form-images-tab"
+                  class="flex-1 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border-b-2 border-blue-500"
+                  type="button"
+                >
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  Imágenes (<span id="article-form-images-count">0</span>)
+                </button>
+                <button 
+                  id="article-form-files-tab"
+                  class="flex-1 px-4 py-2 text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  type="button"
+                >
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                  Archivos (<span id="article-form-files-count">0</span>)
+                </button>
+              </div>
+              
+              <!-- Images Tab Content -->
+              <div id="article-form-images-panel" class="p-3">
+                <!-- Search and Upload Row -->
+                <div class="flex gap-2 mb-3">
+                  <div class="flex-1 relative">
+                    <input 
+                      type="text" 
+                      id="article-form-image-search"
+                      class="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Buscar imágenes..."
+                    />
+                    <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <button 
+                    id="article-form-upload-image-btn"
+                    type="button"
+                    class="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 whitespace-nowrap"
+                  >
+                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Subir
+                  </button>
+                </div>
+                
+                <!-- Attached Images -->
+                <div id="article-form-attached-images" class="mb-3">
+                  <!-- Will be populated dynamically -->
+                </div>
+                
+                <!-- Available Images -->
+                <div class="text-xs font-medium text-gray-500 mb-2">Imágenes disponibles:</div>
+                <div id="article-form-available-images" class="max-h-[150px] overflow-y-auto border border-gray-200 rounded-md">
+                  <!-- Will be populated dynamically -->
+                </div>
+              </div>
+              
+              <!-- Files Tab Content -->
+              <div id="article-form-files-panel" class="p-3" style="display: none;">
+                <!-- Search and Upload Row -->
+                <div class="flex gap-2 mb-3">
+                  <div class="flex-1 relative">
+                    <input 
+                      type="text" 
+                      id="article-form-file-search"
+                      class="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Buscar archivos..."
+                    />
+                    <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <button 
+                    id="article-form-upload-file-btn"
+                    type="button"
+                    class="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 whitespace-nowrap"
+                  >
+                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Subir
+                  </button>
+                </div>
+                
+                <!-- Attached Files -->
+                <div id="article-form-attached-files" class="mb-3">
+                  <!-- Will be populated dynamically -->
+                </div>
+                
+                <!-- Available Files -->
+                <div class="text-xs font-medium text-gray-500 mb-2">Archivos disponibles:</div>
+                <div id="article-form-available-files" class="max-h-[150px] overflow-y-auto border border-gray-200 rounded-md">
+                  <!-- Will be populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Fixed Footer with Buttons -->
+        <div class="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+          <button 
+            id="article-form-cancel-btn"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Cancelar
+          </button>
+          <button 
+            id="article-form-submit-btn"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            ${buttonLabel}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+  
+  /**
    * Initialize the form inside the window
    * @param {Object} formWindow - DHTMLX Window instance
    * @param {string} mode - 'create' or 'edit'
-   * @returns {Object} DHTMLX Form instance
    */
   function initializeForm(formWindow, mode) {
-    var formStructure = getFormStructure(mode);
-    var form = formWindow.attachForm(formStructure);
+    // Attach HTML content to window
+    formWindow.attachHTMLString(renderFormHtml(mode));
     
-    // Attach form event handlers
-    form.attachEvent('onButtonClick', function(name) {
-      if (name === 'submit') {
-        handleFormSubmit();
-      } else if (name === 'cancel') {
-        closeForm();
-      }
-    });
-    
-    // Initialize tag container with click handler
-    // Using requestAnimationFrame ensures the form DOM is rendered before we attach handlers
-    requestAnimationFrame(function() {
-      initializeTagContainer();
-    });
-    
-    return form;
+    // Setup event handlers after a short delay to ensure DOM is ready
+    setTimeout(function() {
+      attachFormEventHandlers();
+      loadMediaData();
+      updateTagsDisplay();
+      updateAttachedImagesDisplay();
+      updateAttachedFilesDisplay();
+    }, 100);
   }
   
   /**
-   * Initialize the tag container with custom UI
+   * Attach event handlers to form elements
    */
-  function initializeTagContainer() {
-    if (!formState.articleForm) return;
+  function attachFormEventHandlers() {
+    // Tags container click
+    var tagsContainer = document.getElementById('article-form-tags-container');
+    if (tagsContainer) {
+      tagsContainer.addEventListener('click', openTagPickerForForm);
+    }
     
-    var container = formState.articleForm.getContainer('tags_container');
+    // Media tab switching
+    var imagesTab = document.getElementById('article-form-images-tab');
+    var filesTab = document.getElementById('article-form-files-tab');
+    
+    if (imagesTab) {
+      imagesTab.addEventListener('click', function() {
+        switchMediaTab('images');
+      });
+    }
+    
+    if (filesTab) {
+      filesTab.addEventListener('click', function() {
+        switchMediaTab('files');
+      });
+    }
+    
+    // Image search
+    var imageSearch = document.getElementById('article-form-image-search');
+    if (imageSearch) {
+      imageSearch.addEventListener('input', Utils.debounce(function(e) {
+        formState.imageSearchQuery = e.target.value;
+        updateAvailableImagesDisplay();
+      }, 300));
+    }
+    
+    // File search
+    var fileSearch = document.getElementById('article-form-file-search');
+    if (fileSearch) {
+      fileSearch.addEventListener('input', Utils.debounce(function(e) {
+        formState.fileSearchQuery = e.target.value;
+        updateAvailableFilesDisplay();
+      }, 300));
+    }
+    
+    // Upload buttons
+    var uploadImageBtn = document.getElementById('article-form-upload-image-btn');
+    if (uploadImageBtn) {
+      uploadImageBtn.addEventListener('click', openImageUpload);
+    }
+    
+    var uploadFileBtn = document.getElementById('article-form-upload-file-btn');
+    if (uploadFileBtn) {
+      uploadFileBtn.addEventListener('click', openFileUpload);
+    }
+    
+    // Form buttons
+    var cancelBtn = document.getElementById('article-form-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', closeForm);
+    }
+    
+    var submitBtn = document.getElementById('article-form-submit-btn');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', handleFormSubmit);
+    }
+  }
+  
+  /**
+   * Switch between images and files tabs
+   * @param {string} tab - 'images' or 'files'
+   */
+  function switchMediaTab(tab) {
+    formState.activeMediaTab = tab;
+    
+    var imagesTab = document.getElementById('article-form-images-tab');
+    var filesTab = document.getElementById('article-form-files-tab');
+    var imagesPanel = document.getElementById('article-form-images-panel');
+    var filesPanel = document.getElementById('article-form-files-panel');
+    
+    if (tab === 'images') {
+      imagesTab.className = 'flex-1 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border-b-2 border-blue-500';
+      filesTab.className = 'flex-1 px-4 py-2 text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100';
+      imagesPanel.style.display = 'block';
+      filesPanel.style.display = 'none';
+    } else {
+      filesTab.className = 'flex-1 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border-b-2 border-blue-500';
+      imagesTab.className = 'flex-1 px-4 py-2 text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100';
+      filesPanel.style.display = 'block';
+      imagesPanel.style.display = 'none';
+    }
+  }
+  
+  /**
+   * Load media data (images and files) for the company
+   */
+  function loadMediaData() {
+    if (!formState.companyId) return;
+    
+    // Load images
+    ImageService.getImages(formState.companyId)
+      .then(function(images) {
+        formState.allImages = images;
+        updateAvailableImagesDisplay();
+      })
+      .catch(function(error) {
+        console.error('Error loading images:', error);
+      });
+    
+    // Load files
+    FileService.getFiles(formState.companyId)
+      .then(function(files) {
+        formState.allFiles = files;
+        updateAvailableFilesDisplay();
+      })
+      .catch(function(error) {
+        console.error('Error loading files:', error);
+      });
+  }
+  
+  /**
+   * Update the available images display based on search
+   */
+  function updateAvailableImagesDisplay() {
+    var container = document.getElementById('article-form-available-images');
     if (!container) return;
     
-    // Create custom tag container HTML
-    var containerHtml = document.createElement('div');
-    containerHtml.className = 'tag-container-wrapper';
-    containerHtml.style.border = '1px solid #d9d9d9';
-    containerHtml.style.borderRadius = '4px';
-    containerHtml.style.padding = '12px';
-    containerHtml.style.minHeight = '60px';
-    containerHtml.style.cursor = 'pointer';
-    containerHtml.style.transition = 'border-color 0.3s';
+    var filteredImages = formState.allImages;
     
-    containerHtml.innerHTML = `
-      <div id="selected-tags-display" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px;">
-        ${renderSelectedTagsBadges()}
+    // Apply search filter
+    if (formState.imageSearchQuery) {
+      var query = formState.imageSearchQuery.toLowerCase();
+      filteredImages = filteredImages.filter(function(img) {
+        return img.name.toLowerCase().includes(query) ||
+               (img.description && img.description.toLowerCase().includes(query));
+      });
+    }
+    
+    // Filter out already attached images
+    filteredImages = filteredImages.filter(function(img) {
+      return formState.attachedImages.indexOf(img.id) === -1;
+    });
+    
+    if (filteredImages.length === 0) {
+      container.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No hay imágenes disponibles</div>';
+      return;
+    }
+    
+    container.innerHTML = filteredImages.map(function(img) {
+      return renderAvailableImageItem(img);
+    }).join('');
+    
+    // Attach click handlers
+    container.querySelectorAll('[data-attach-image-id]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var imageId = btn.getAttribute('data-attach-image-id');
+        attachImage(imageId);
+      });
+    });
+  }
+  
+  /**
+   * Render an available image item
+   * @param {Object} img - Image object
+   * @returns {string} HTML string
+   */
+  function renderAvailableImageItem(img) {
+    return `
+      <div class="flex items-center p-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+        <img 
+          src="${escapeHtml(img.thumbnail_url)}" 
+          alt="${escapeHtml(img.name)}"
+          class="w-10 h-10 object-cover rounded flex-shrink-0"
+        />
+        <div class="ml-3 flex-1 min-w-0">
+          <div class="text-sm font-medium text-gray-900 truncate">${escapeHtml(img.name)}</div>
+          <div class="text-xs text-gray-500">${escapeHtml(img.dimensions)} • ${escapeHtml(img.size)}</div>
+        </div>
+        <button 
+          type="button"
+          data-attach-image-id="${escapeHtml(img.id)}"
+          class="ml-2 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+        >
+          Adjuntar
+        </button>
       </div>
-      <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c;">
-        Haz clic para seleccionar etiquetas
+    `;
+  }
+  
+  /**
+   * Update the available files display based on search
+   */
+  function updateAvailableFilesDisplay() {
+    var container = document.getElementById('article-form-available-files');
+    if (!container) return;
+    
+    var filteredFiles = formState.allFiles;
+    
+    // Apply search filter
+    if (formState.fileSearchQuery) {
+      var query = formState.fileSearchQuery.toLowerCase();
+      filteredFiles = filteredFiles.filter(function(file) {
+        return file.name.toLowerCase().includes(query) ||
+               (file.description && file.description.toLowerCase().includes(query));
+      });
+    }
+    
+    // Filter out already attached files
+    filteredFiles = filteredFiles.filter(function(file) {
+      return formState.attachedFiles.indexOf(file.id) === -1;
+    });
+    
+    if (filteredFiles.length === 0) {
+      container.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No hay archivos disponibles</div>';
+      return;
+    }
+    
+    container.innerHTML = filteredFiles.map(function(file) {
+      return renderAvailableFileItem(file);
+    }).join('');
+    
+    // Attach click handlers
+    container.querySelectorAll('[data-attach-file-id]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var fileId = btn.getAttribute('data-attach-file-id');
+        attachFile(fileId);
+      });
+    });
+  }
+  
+  /**
+   * Render an available file item
+   * @param {Object} file - File object
+   * @returns {string} HTML string
+   */
+  function renderAvailableFileItem(file) {
+    var extension = Utils.getFileExtension(file.name).toUpperCase();
+    
+    return `
+      <div class="flex items-center p-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+        <div class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded flex-shrink-0">
+          <span class="text-xs font-medium text-gray-500">${extension}</span>
+        </div>
+        <div class="ml-3 flex-1 min-w-0">
+          <div class="text-sm font-medium text-gray-900 truncate">${escapeHtml(file.name)}</div>
+          <div class="text-xs text-gray-500">${escapeHtml(file.size)}</div>
+        </div>
+        <button 
+          type="button"
+          data-attach-file-id="${escapeHtml(file.id)}"
+          class="ml-2 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+        >
+          Adjuntar
+        </button>
+      </div>
+    `;
+  }
+  
+  /**
+   * Attach an image to the article
+   * @param {string} imageId - Image ID to attach
+   */
+  function attachImage(imageId) {
+    if (formState.attachedImages.indexOf(imageId) === -1) {
+      formState.attachedImages.push(imageId);
+      updateAttachedImagesDisplay();
+      updateAvailableImagesDisplay();
+      updateMediaCounts();
+    }
+  }
+  
+  /**
+   * Detach an image from the article
+   * @param {string} imageId - Image ID to detach
+   */
+  function detachImage(imageId) {
+    var index = formState.attachedImages.indexOf(imageId);
+    if (index !== -1) {
+      formState.attachedImages.splice(index, 1);
+      updateAttachedImagesDisplay();
+      updateAvailableImagesDisplay();
+      updateMediaCounts();
+    }
+  }
+  
+  /**
+   * Attach a file to the article
+   * @param {string} fileId - File ID to attach
+   */
+  function attachFile(fileId) {
+    if (formState.attachedFiles.indexOf(fileId) === -1) {
+      formState.attachedFiles.push(fileId);
+      updateAttachedFilesDisplay();
+      updateAvailableFilesDisplay();
+      updateMediaCounts();
+    }
+  }
+  
+  /**
+   * Detach a file from the article
+   * @param {string} fileId - File ID to detach
+   */
+  function detachFile(fileId) {
+    var index = formState.attachedFiles.indexOf(fileId);
+    if (index !== -1) {
+      formState.attachedFiles.splice(index, 1);
+      updateAttachedFilesDisplay();
+      updateAvailableFilesDisplay();
+      updateMediaCounts();
+    }
+  }
+  
+  /**
+   * Update the attached images display
+   */
+  function updateAttachedImagesDisplay() {
+    var container = document.getElementById('article-form-attached-images');
+    if (!container) return;
+    
+    if (formState.attachedImages.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+    
+    // Get attached image objects
+    var attachedImageObjects = formState.attachedImages.map(function(id) {
+      return formState.allImages.find(function(img) { return img.id === id; });
+    }).filter(function(img) { return img; });
+    
+    container.innerHTML = `
+      <div class="text-xs font-medium text-gray-500 mb-2">Imágenes adjuntas:</div>
+      <div class="flex flex-wrap gap-2">
+        ${attachedImageObjects.map(function(img) {
+          return `
+            <div class="relative group">
+              <img 
+                src="${escapeHtml(img.thumbnail_url)}" 
+                alt="${escapeHtml(img.name)}"
+                class="w-16 h-16 object-cover rounded border border-gray-200"
+                title="${escapeHtml(img.name)}"
+              />
+              <button 
+                type="button"
+                data-detach-image-id="${escapeHtml(img.id)}"
+                class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                title="Quitar imagen"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
     
-    // Add hover effect
-    containerHtml.addEventListener('mouseenter', function() {
-      containerHtml.style.borderColor = '#40a9ff';
+    // Attach detach handlers
+    container.querySelectorAll('[data-detach-image-id]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var imageId = btn.getAttribute('data-detach-image-id');
+        detachImage(imageId);
+      });
     });
-    
-    containerHtml.addEventListener('mouseleave', function() {
-      containerHtml.style.borderColor = '#d9d9d9';
-    });
-    
-    // Add click handler to open tag picker
-    containerHtml.addEventListener('click', function() {
-      openTagPickerForForm();
-    });
-    
-    // Clear the container and add our custom HTML
-    container.innerHTML = '';
-    container.appendChild(containerHtml);
   }
   
   /**
-   * Render selected tags as badges
-   * @returns {string} HTML string for tag badges
+   * Update the attached files display
    */
-  function renderSelectedTagsBadges() {
-    if (formState.selectedTags.length === 0) {
-      return '<span style="color: #bfbfbf; font-size: 14px;">Ninguna etiqueta seleccionada</span>';
+  function updateAttachedFilesDisplay() {
+    var container = document.getElementById('article-form-attached-files');
+    if (!container) return;
+    
+    if (formState.attachedFiles.length === 0) {
+      container.innerHTML = '';
+      return;
     }
     
-    return formState.selectedTags.map(function(tag) {
+    // Get attached file objects
+    var attachedFileObjects = formState.attachedFiles.map(function(id) {
+      return formState.allFiles.find(function(file) { return file.id === id; });
+    }).filter(function(file) { return file; });
+    
+    container.innerHTML = `
+      <div class="text-xs font-medium text-gray-500 mb-2">Archivos adjuntos:</div>
+      <div class="space-y-1">
+        ${attachedFileObjects.map(function(file) {
+          var extension = Utils.getFileExtension(file.name).toUpperCase();
+          return `
+            <div class="flex items-center p-2 bg-blue-50 rounded border border-blue-100">
+              <div class="w-8 h-8 flex items-center justify-center bg-white rounded flex-shrink-0">
+                <span class="text-xs font-medium text-gray-500">${extension}</span>
+              </div>
+              <div class="ml-2 flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate">${escapeHtml(file.name)}</div>
+              </div>
+              <button 
+                type="button"
+                data-detach-file-id="${escapeHtml(file.id)}"
+                class="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                title="Quitar archivo"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    
+    // Attach detach handlers
+    container.querySelectorAll('[data-detach-file-id]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var fileId = btn.getAttribute('data-detach-file-id');
+        detachFile(fileId);
+      });
+    });
+  }
+  
+  /**
+   * Update media counts in tab headers
+   */
+  function updateMediaCounts() {
+    var imagesCount = document.getElementById('article-form-images-count');
+    var filesCount = document.getElementById('article-form-files-count');
+    
+    if (imagesCount) {
+      imagesCount.textContent = formState.attachedImages.length;
+    }
+    if (filesCount) {
+      filesCount.textContent = formState.attachedFiles.length;
+    }
+  }
+  
+  /**
+   * Open image upload modal
+   */
+  function openImageUpload() {
+    ImageUploadUI.openUploadModal(formState.companyId, function(uploadedImages) {
+      // Add uploaded images to available images and attach them
+      uploadedImages.forEach(function(img) {
+        formState.allImages.push(img);
+        attachImage(img.id);
+      });
+      updateAvailableImagesDisplay();
+    });
+  }
+  
+  /**
+   * Open file upload modal
+   */
+  function openFileUpload() {
+    FileUploadUI.openUploadModal(formState.companyId, function(uploadedFiles) {
+      // Add uploaded files to available files and attach them
+      uploadedFiles.forEach(function(file) {
+        formState.allFiles.push(file);
+        attachFile(file.id);
+      });
+      updateAvailableFilesDisplay();
+    });
+  }
+  
+  /**
+   * Update the tags display
+   */
+  function updateTagsDisplay() {
+    var container = document.getElementById('article-form-selected-tags');
+    if (!container) return;
+    
+    if (formState.selectedTags.length === 0) {
+      container.innerHTML = '<span class="text-gray-400 text-sm">Ninguna etiqueta seleccionada</span>';
+      return;
+    }
+    
+    container.innerHTML = formState.selectedTags.map(function(tag) {
       return `
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
-              style="background-color: ${tag.color}; display: inline-flex; align-items: center; gap: 6px;">
+        <span 
+          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
+          style="background-color: ${escapeHtml(tag.color)};"
+        >
           ${escapeHtml(tag.name)}
-          <button class="tag-remove-btn" data-tag-id="${escapeHtml(tag.id)}" 
-                  style="background: rgba(0,0,0,0.2); border: none; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; color: white; font-size: 12px; line-height: 1;"
-                  title="Eliminar etiqueta">×</button>
+          <button 
+            type="button"
+            data-remove-tag-id="${escapeHtml(tag.id)}"
+            class="ml-1 -mr-1 w-4 h-4 flex items-center justify-center rounded-full hover:bg-black hover:bg-opacity-20"
+            title="Quitar etiqueta"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </span>
       `;
     }).join('');
-  }
-  
-  /**
-   * Update the tag badges display
-   */
-  function updateTagBadgesDisplay() {
-    var display = document.getElementById('selected-tags-display');
-    if (display) {
-      display.innerHTML = renderSelectedTagsBadges();
-      
-      // Attach event listeners to remove buttons (safer than inline onclick)
-      var removeButtons = display.querySelectorAll('.tag-remove-btn');
-      removeButtons.forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();  // Prevent triggering the container click
-          var tagId = btn.getAttribute('data-tag-id');
-          removeTag(tagId);
-        });
+    
+    // Attach remove handlers
+    container.querySelectorAll('[data-remove-tag-id]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var tagId = btn.getAttribute('data-remove-tag-id');
+        removeTag(tagId);
       });
-    }
+    });
   }
   
   /**
@@ -362,7 +865,7 @@ var ArticleFormUI = (function() {
     // Open the tag picker
     TagPickerUI.openTagPicker(formState.companyId, selectedTagIds, function(selectedTags) {
       formState.selectedTags = selectedTags;
-      updateTagBadgesDisplay();
+      updateTagsDisplay();
     });
   }
   
@@ -374,7 +877,7 @@ var ArticleFormUI = (function() {
     formState.selectedTags = formState.selectedTags.filter(function(tag) {
       return tag.id !== tagId;
     });
-    updateTagBadgesDisplay();
+    updateTagsDisplay();
   }
   
   /**
@@ -393,26 +896,27 @@ var ArticleFormUI = (function() {
    * @returns {boolean} True if form is valid
    */
   function validateForm() {
-    if (!formState.articleForm) {
-      return false;
-    }
+    var titleInput = document.getElementById('article-form-title');
+    var descriptionInput = document.getElementById('article-form-description');
     
-    var title = formState.articleForm.getItemValue('title');
-    var description = formState.articleForm.getItemValue('description');
+    var title = titleInput ? titleInput.value.trim() : '';
+    var description = descriptionInput ? descriptionInput.value.trim() : '';
     
-    if (!title || title.trim() === '') {
+    if (!title) {
       dhtmlx.alert({
         title: 'Error de validación',
         text: 'El campo "Título" es obligatorio.'
       });
+      if (titleInput) titleInput.focus();
       return false;
     }
     
-    if (!description || description.trim() === '') {
+    if (!description) {
       dhtmlx.alert({
         title: 'Error de validación',
         text: 'El campo "Descripción" es obligatorio.'
       });
+      if (descriptionInput) descriptionInput.focus();
       return false;
     }
     
@@ -424,24 +928,27 @@ var ArticleFormUI = (function() {
    * @returns {Object} Form data object
    */
   function getFormData() {
-    if (!formState.articleForm) {
-      return null;
-    }
+    var titleInput = document.getElementById('article-form-title');
+    var statusSelect = document.getElementById('article-form-status');
+    var descriptionInput = document.getElementById('article-form-description');
+    var externalLinkInput = document.getElementById('article-form-external-link');
+    var clientCommentsInput = document.getElementById('article-form-client-comments');
     
     // Convert selected tags to tag IDs for storage
-    // Filter out any tags without IDs (for backward compatibility)
     var tagIds = formState.selectedTags
       .filter(function(tag) { return tag && tag.id; })
       .map(function(tag) { return tag.id; });
     
     return {
-      title: formState.articleForm.getItemValue('title') || '',
-      description: formState.articleForm.getItemValue('description') || '',
-      status: formState.articleForm.getItemValue('status') || 'Abierto',
-      externalLink: formState.articleForm.getItemValue('externalLink') || '',
-      clientComments: formState.articleForm.getItemValue('clientComments') || '',
+      title: titleInput ? titleInput.value.trim() : '',
+      description: descriptionInput ? descriptionInput.value.trim() : '',
+      status: statusSelect ? statusSelect.value : 'Abierto',
+      externalLink: externalLinkInput ? externalLinkInput.value.trim() : '',
+      clientComments: clientCommentsInput ? clientCommentsInput.value.trim() : '',
       companyId: formState.companyId,
-      tags: tagIds  // Store tag IDs instead of tag objects
+      tags: tagIds,
+      attachedImages: formState.attachedImages.slice(),
+      attachedFiles: formState.attachedFiles.slice()
     };
   }
   
@@ -455,6 +962,13 @@ var ArticleFormUI = (function() {
     }
     
     var formData = getFormData();
+    var submitBtn = document.getElementById('article-form-submit-btn');
+    
+    // Disable submit button
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+    }
     
     if (formState.currentMode === 'create') {
       // Create new article
@@ -481,9 +995,15 @@ var ArticleFormUI = (function() {
             title: 'Error',
             text: 'Error al crear el artículo: ' + error.message
           });
+          
+          // Re-enable submit button
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Crear Artículo';
+          }
         });
     } else if (formState.currentMode === 'edit') {
-      // Update article with new data (including tags from checkboxes)
+      // Update article with new data
       ArticleService.getArticleById(formState.articleId)
         .then(function(existingArticle) {
           formData.createdAt = existingArticle ? existingArticle.createdAt : null;
@@ -512,6 +1032,12 @@ var ArticleFormUI = (function() {
             title: 'Error',
             text: 'Error al actualizar el artículo: ' + error.message
           });
+          
+          // Re-enable submit button
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Guardar Cambios';
+          }
         });
     }
   }
@@ -528,10 +1054,45 @@ var ArticleFormUI = (function() {
     formState.currentMode = null;
     formState.articleId = null;
     formState.articleWindow = null;
-    formState.articleForm = null;
     formState.companyId = null;
     formState.onSaveCallback = null;
     formState.selectedTags = [];
+    formState.attachedImages = [];
+    formState.attachedFiles = [];
+    formState.allImages = [];
+    formState.allFiles = [];
+    formState.imageSearchQuery = '';
+    formState.fileSearchQuery = '';
+    formState.activeMediaTab = 'images';
+  }
+  
+  /**
+   * Populate form with article data (for edit mode)
+   * @param {Object} articleData - Article data to populate
+   */
+  function populateFormWithArticleData(articleData) {
+    var titleInput = document.getElementById('article-form-title');
+    var statusSelect = document.getElementById('article-form-status');
+    var descriptionInput = document.getElementById('article-form-description');
+    var externalLinkInput = document.getElementById('article-form-external-link');
+    var clientCommentsInput = document.getElementById('article-form-client-comments');
+    
+    if (titleInput) titleInput.value = articleData.title || '';
+    if (descriptionInput) descriptionInput.value = articleData.description || '';
+    if (externalLinkInput) externalLinkInput.value = articleData.externalLink || '';
+    if (clientCommentsInput) clientCommentsInput.value = articleData.clientComments || '';
+    
+    if (statusSelect && articleData.status) {
+      statusSelect.value = articleData.status;
+    }
+    
+    // Set attached images and files
+    if (articleData.attachedImages && Array.isArray(articleData.attachedImages)) {
+      formState.attachedImages = articleData.attachedImages.slice();
+    }
+    if (articleData.attachedFiles && Array.isArray(articleData.attachedFiles)) {
+      formState.attachedFiles = articleData.attachedFiles.slice();
+    }
   }
   
   /**
@@ -545,20 +1106,18 @@ var ArticleFormUI = (function() {
     formState.articleId = null;
     formState.companyId = companyId;
     formState.onSaveCallback = onSaveCallback;
-    formState.selectedTags = [];  // Initialize with empty tags
+    formState.selectedTags = [];
+    formState.attachedImages = [];
+    formState.attachedFiles = [];
+    formState.allImages = [];
+    formState.allFiles = [];
+    formState.imageSearchQuery = '';
+    formState.fileSearchQuery = '';
+    formState.activeMediaTab = 'images';
     
     // Create window and form
     formState.articleWindow = createFormWindow('create', null);
-    formState.articleForm = initializeForm(formState.articleWindow, 'create');
-    
-    // Clear form and set default status
-    formState.articleForm.clear();
-    
-    // Set default status to "Abierto"
-    var statusCombo = formState.articleForm.getCombo('status');
-    if (statusCombo) {
-      statusCombo.selectOption(0, true, true);
-    }
+    initializeForm(formState.articleWindow, 'create');
   }
   
   /**
@@ -577,6 +1136,13 @@ var ArticleFormUI = (function() {
     formState.articleId = articleData.id;
     formState.companyId = articleData.companyId;
     formState.onSaveCallback = onSaveCallback;
+    formState.attachedImages = [];
+    formState.attachedFiles = [];
+    formState.allImages = [];
+    formState.allFiles = [];
+    formState.imageSearchQuery = '';
+    formState.fileSearchQuery = '';
+    formState.activeMediaTab = 'images';
     
     // Load tags for the company and convert article tags to tag objects
     ArticleService.getTags(articleData.companyId)
@@ -585,15 +1151,17 @@ var ArticleFormUI = (function() {
         formState.selectedTags = [];
         
         if (articleData.tags && Array.isArray(articleData.tags)) {
-          // Check if tags are already objects (legacy format) or IDs (new format)
+          // Check if tags are already objects or IDs
           if (articleData.tags.length > 0 && typeof articleData.tags[0] === 'string') {
-            // New format: tags are IDs
+            // Tags are IDs
             formState.selectedTags = companyTags.filter(function(tag) {
               return articleData.tags.indexOf(tag.id) !== -1;
             });
+          } else if (articleData.tags.length > 0 && articleData.tags[0].id) {
+            // Tags are objects with id property
+            formState.selectedTags = articleData.tags;
           } else {
             // Legacy format: tags are objects with label and color
-            // Try to match them with company tags by name
             articleData.tags.forEach(function(articleTag) {
               var matchedTag = companyTags.find(function(companyTag) {
                 return companyTag.name === articleTag.label;
@@ -607,26 +1175,16 @@ var ArticleFormUI = (function() {
         
         // Create window and form
         formState.articleWindow = createFormWindow('edit', articleData.id);
-        formState.articleForm = initializeForm(formState.articleWindow, 'edit');
+        initializeForm(formState.articleWindow, 'edit');
         
-        // Populate form with article data
-        formState.articleForm.setItemValue('title', articleData.title || '');
-        formState.articleForm.setItemValue('description', articleData.description || '');
-        formState.articleForm.setItemValue('externalLink', articleData.externalLink || '');
-        formState.articleForm.setItemValue('clientComments', articleData.clientComments || '');
-        
-        // Set status in combo
-        var statusCombo = formState.articleForm.getCombo('status');
-        if (statusCombo && articleData.status) {
-          // Find the index of the status
-          var currentStatusOptions = getStatusOptions();
-          var statusIndex = currentStatusOptions.findIndex(function(opt) {
-            return opt.value === articleData.status;
-          });
-          if (statusIndex !== -1) {
-            statusCombo.selectOption(statusIndex, true, true);
-          }
-        }
+        // Populate form with article data after a short delay
+        setTimeout(function() {
+          populateFormWithArticleData(articleData);
+          updateTagsDisplay();
+          updateAttachedImagesDisplay();
+          updateAttachedFilesDisplay();
+          updateMediaCounts();
+        }, 150);
       })
       .catch(function(error) {
         console.error('Error loading tags for edit form:', error);

@@ -20,7 +20,9 @@
  * @property {string} clientComments - Comments from the client
  * @property {('Abierto'|'En progreso'|'Esperando'|'Cerrado')} status - Current status
  * @property {string} companyId - Foreign key to Company
- * @property {Array<{label: string, color: string}>} tags - Company-scoped tags
+ * @property {Array<string>} tags - Array of tag IDs (company-scoped)
+ * @property {Array<string>} attachedImages - Array of image IDs attached to the article
+ * @property {Array<string>} attachedFiles - Array of file IDs attached to the article
  * @property {string} createdAt - Creation date (YYYY-MM-DD)
  * @property {string} updatedAt - Last update date (YYYY-MM-DD)
  */
