@@ -32,7 +32,7 @@ const ImageMetadataEditorUI = (function() {
         }
         
         currentWindow = new dhtmlXWindows();
-        const editWindow = currentWindow.createWindow('image_metadata_window', 0, 0, 500, 550);
+        const editWindow = currentWindow.createWindow('image_metadata_window', 0, 0, 700, 700);
         editWindow.setText('Editar descripción');
         editWindow.centerOnScreen();
         editWindow.button('minmax').hide();
