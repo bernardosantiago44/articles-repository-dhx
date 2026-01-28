@@ -150,12 +150,12 @@ var BulkTagEditorUI = (function() {
       '<p class="text-sm text-gray-600">' +
         '<span class="font-medium">' + totalArticles + ' artículo' + (totalArticles !== 1 ? 's' : '') + ' seleccionado' + (totalArticles !== 1 ? 's' : '') + '</span>' +
       '</p>' +
-      '<div class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">' +
-        '<strong>Lógica de operación:</strong>' +
-        '<ul class="mt-1 list-disc list-inside">' +
-          '<li><span class="inline-flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>Verde:</span> Clic añadirá esta etiqueta a los artículos que no la tienen</li>' +
-          '<li><span class="inline-flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>Rojo:</span> Clic eliminará esta etiqueta de todos los artículos</li>' +
-        '</ul>' +
+      // '<div class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">' +
+      //   '<strong>Lógica de operación:</strong>' +
+      //   '<ul class="mt-1 list-disc list-inside">' +
+      //     '<li><span class="inline-flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>Verde:</span> Clic añadirá esta etiqueta a los artículos que no la tienen</li>' +
+      //     '<li><span class="inline-flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>Rojo:</span> Clic eliminará esta etiqueta de todos los artículos</li>' +
+      //   '</ul>' +
       '</div>';
     
     // Modal body
