@@ -120,5 +120,133 @@
       "createdAt": "2026-01-05",
       "updatedAt": "2026-01-20"
     }
+  ],
+  "files": [
+    {
+      "id": "file-001",
+      "name": "test-results.csv",
+      "size": "32.0 KB",
+      "description": "test-results para Acme Corporation",
+      "upload_date": "2026-01-26",
+      "companyId": "co-01",
+      "linked_articles": ["issue-0001"]
+    },
+    {
+      "id": "file-002",
+      "name": "api-response.json",
+      "size": "4.0 KB",
+      "description": "api-response para Acme Corporation",
+      "upload_date": "2026-01-22",
+      "companyId": "co-01",
+      "linked_articles": ["issue-0002"]
+    },
+    {
+      "id": "file-003",
+      "name": "screenshot-bug.png",
+      "size": "500.0 KB",
+      "description": "screenshot-bug para Acme Corporation",
+      "upload_date": "2026-01-04",
+      "companyId": "co-01",
+      "linked_articles": ["issue-0001", "issue-0003"]
+    },
+    {
+      "id": "file-004",
+      "name": "error-log.txt",
+      "size": "2.0 KB",
+      "description": "error-log para Acme Corporation",
+      "upload_date": "2025-12-30",
+      "companyId": "co-01",
+      "linked_articles": []
+    },
+    {
+      "id": "file-005",
+      "name": "user-manual.docx",
+      "size": "2.0 MB",
+      "description": "user-manual para Acme Corporation",
+      "upload_date": "2025-11-27",
+      "companyId": "co-01",
+      "linked_articles": []
+    },
+    {
+      "id": "file-006",
+      "name": "config-backup.xml",
+      "size": "16.0 KB",
+      "description": "config-backup para Acme Corporation",
+      "upload_date": "2025-11-05",
+      "companyId": "co-01",
+      "linked_articles": []
+    },
+    {
+      "id": "file-007",
+      "name": "requirements.pdf",
+      "size": "1.0 MB",
+      "description": "requirements para Acme Corporation",
+      "upload_date": "2025-10-25",
+      "companyId": "co-01",
+      "linked_articles": []
+    },
+    {
+      "id": "file-008",
+      "name": "database-schema.sql",
+      "size": "8.0 KB",
+      "description": "database-schema para Acme Corporation",
+      "upload_date": "2025-10-14",
+      "companyId": "co-01",
+      "linked_articles": []
+    },
+    {
+      "id": "file-009",
+      "name": "access-logs.txt",
+      "size": "125.0 KB",
+      "description": "access-logs para Global Tech Solutions",
+      "upload_date": "2026-01-20",
+      "companyId": "co-02",
+      "linked_articles": ["issue-0004"]
+    },
+    {
+      "id": "file-010",
+      "name": "permissions-matrix.xlsx",
+      "size": "45.0 KB",
+      "description": "permissions-matrix para Global Tech Solutions",
+      "upload_date": "2026-01-15",
+      "companyId": "co-02",
+      "linked_articles": ["issue-0005"]
+    },
+    {
+      "id": "file-011",
+      "name": "security-audit.pdf",
+      "size": "3.5 MB",
+      "description": "security-audit para Global Tech Solutions",
+      "upload_date": "2026-01-10",
+      "companyId": "co-02",
+      "linked_articles": []
+    },
+    {
+      "id": "file-012",
+      "name": "api-documentation.md",
+      "size": "87.0 KB",
+      "description": "api-documentation para Innovation Labs Inc.",
+      "upload_date": "2026-01-18",
+      "companyId": "co-03",
+      "linked_articles": ["issue-0007"]
+    },
+    {
+      "id": "file-013",
+      "name": "performance-report.pdf",
+      "size": "2.8 MB",
+      "description": "performance-report para Innovation Labs Inc.",
+      "upload_date": "2026-01-12",
+      "companyId": "co-03",
+      "linked_articles": ["issue-0008"]
+    },
+    {
+      "id": "file-014",
+      "name": "widget-specs.docx",
+      "size": "156.0 KB",
+      "description": "widget-specs para Innovation Labs Inc.",
+      "upload_date": "2026-01-08",
+      "companyId": "co-03",
+      "linked_articles": []
+    }
   ]
 }

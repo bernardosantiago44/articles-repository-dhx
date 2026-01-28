@@ -48,7 +48,7 @@ var ArticleFormUI = (function() {
   
   // Form window dimensions
   var FORM_WINDOW_WIDTH = 750;
-  var FORM_WINDOW_HEIGHT = 650;
+  var FORM_WINDOW_HEIGHT = 750;
   
   /**
    * Get available tag options with colors (LEGACY - for backward compatibility)
