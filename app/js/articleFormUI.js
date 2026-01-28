@@ -76,8 +76,8 @@ var ArticleFormUI = (function() {
     // Create window manager
     var dhxWins = new dhtmlXWindows();
     
-    // Window title based on mode
-    var windowTitle = mode === 'create' ? 'Nuevo Artículo' : 'Editando: ' + articleId;
+    // Window title based on mode - escape articleId to prevent XSS
+    var windowTitle = mode === 'create' ? 'Nuevo Artículo' : 'Editando: ' + escapeHtml(articleId || '');
     
     // Create and configure window
     var formWindow = dhxWins.createWindow('article_form_window', 0, 0, FORM_WINDOW_WIDTH, FORM_WINDOW_HEIGHT);
@@ -444,9 +444,16 @@ var ArticleFormUI = (function() {
       .then(function(images) {
         formState.allImages = images;
         updateAvailableImagesDisplay();
+        // Update attached images display in case data loaded after populating form
+        updateAttachedImagesDisplay();
+        updateMediaCounts();
       })
       .catch(function(error) {
         console.error('Error loading images:', error);
+        dhtmlx.message({
+          type: 'error',
+          text: 'No se pudieron cargar las imágenes disponibles'
+        });
       });
     
     // Load files
@@ -454,9 +461,16 @@ var ArticleFormUI = (function() {
       .then(function(files) {
         formState.allFiles = files;
         updateAvailableFilesDisplay();
+        // Update attached files display in case data loaded after populating form
+        updateAttachedFilesDisplay();
+        updateMediaCounts();
       })
       .catch(function(error) {
         console.error('Error loading files:', error);
+        dhtmlx.message({
+          type: 'error',
+          text: 'No se pudieron cargar los archivos disponibles'
+        });
       });
   }
   
@@ -507,10 +521,11 @@ var ArticleFormUI = (function() {
    * @returns {string} HTML string
    */
   function renderAvailableImageItem(img) {
+    var safeUrl = sanitizeUrl(img.thumbnail_url);
     return `
       <div class="flex items-center p-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
         <img 
-          src="${escapeHtml(img.thumbnail_url)}" 
+          src="${safeUrl}" 
           alt="${escapeHtml(img.name)}"
           class="w-10 h-10 object-cover rounded flex-shrink-0"
         />
@@ -576,7 +591,7 @@ var ArticleFormUI = (function() {
    * @returns {string} HTML string
    */
   function renderAvailableFileItem(file) {
-    var extension = Utils.getFileExtension(file.name).toUpperCase();
+    var extension = escapeHtml(Utils.getFileExtension(file.name).toUpperCase());
     
     return `
       <div class="flex items-center p-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
@@ -673,10 +688,11 @@ var ArticleFormUI = (function() {
       <div class="text-xs font-medium text-gray-500 mb-2">Imágenes adjuntas:</div>
       <div class="flex flex-wrap gap-2">
         ${attachedImageObjects.map(function(img) {
+          var safeUrl = sanitizeUrl(img.thumbnail_url);
           return `
             <div class="relative group">
               <img 
-                src="${escapeHtml(img.thumbnail_url)}" 
+                src="${safeUrl}" 
                 alt="${escapeHtml(img.name)}"
                 class="w-16 h-16 object-cover rounded border border-gray-200"
                 title="${escapeHtml(img.name)}"
@@ -727,7 +743,7 @@ var ArticleFormUI = (function() {
       <div class="text-xs font-medium text-gray-500 mb-2">Archivos adjuntos:</div>
       <div class="space-y-1">
         ${attachedFileObjects.map(function(file) {
-          var extension = Utils.getFileExtension(file.name).toUpperCase();
+          var extension = escapeHtml(Utils.getFileExtension(file.name).toUpperCase());
           return `
             <div class="flex items-center p-2 bg-blue-50 rounded border border-blue-100">
               <div class="w-8 h-8 flex items-center justify-center bg-white rounded flex-shrink-0">
@@ -817,10 +833,11 @@ var ArticleFormUI = (function() {
     }
     
     container.innerHTML = formState.selectedTags.map(function(tag) {
+      var safeColor = sanitizeColor(tag.color);
       return `
         <span 
           class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
-          style="background-color: ${escapeHtml(tag.color)};"
+          style="background-color: ${safeColor};"
         >
           ${escapeHtml(tag.name)}
           <button 
@@ -889,6 +906,39 @@ var ArticleFormUI = (function() {
     var div = document.createElement('div');
     div.textContent = text || '';
     return div.innerHTML;
+  }
+  
+  /**
+   * Validate that a URL is safe (no javascript: protocol)
+   * @param {string} url - URL to validate
+   * @returns {string} Safe URL or empty string
+   */
+  function sanitizeUrl(url) {
+    if (!url) return '';
+    var trimmedUrl = url.trim().toLowerCase();
+    // Only allow http, https, and data protocols
+    if (trimmedUrl.startsWith('http://') || 
+        trimmedUrl.startsWith('https://') || 
+        trimmedUrl.startsWith('data:image/')) {
+      return escapeHtml(url);
+    }
+    // Return empty or placeholder for invalid URLs
+    return '';
+  }
+  
+  /**
+   * Validate that a color is a valid hex color
+   * @param {string} color - Color to validate
+   * @returns {string} Valid hex color or default gray
+   */
+  function sanitizeColor(color) {
+    if (!color) return '#6b7280'; // Default gray
+    // Check for valid hex color format
+    var hexPattern = /^#[0-9a-fA-F]{3,6}$/;
+    if (hexPattern.test(color.trim())) {
+      return escapeHtml(color.trim());
+    }
+    return '#6b7280'; // Default gray for invalid colors
   }
   
   /**
