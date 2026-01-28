@@ -38,7 +38,7 @@ const ImageUploadUI = (function() {
     selectedImages = [];
     
     currentWindow = new dhtmlXWindows();
-    const uploadWindow = currentWindow.createWindow('image_upload_window', 0, 0, 700, 700);
+    const uploadWindow = currentWindow.createWindow('image_upload_window', 0, 0, 650, 650);
     uploadWindow.setText('Subir imágenes');
     uploadWindow.centerOnScreen();
     uploadWindow.button('minmax').hide();
