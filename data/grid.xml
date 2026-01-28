@@ -2,14 +2,14 @@
 <rows>
   <row id="1">
     <cell>0</cell>
-    <cell>Abierto</cell>
+    <cell>Producción</cell>
     <cell>Solicitud de acceso al entorno sandbox - Caso 2</cell>
     <cell>2026-01-19</cell>
     <cell>2026-01-08</cell>
   </row>
   <row id="2">
   <cell>0</cell>
-    <cell>Abierto</cell>
+    <cell>Producción</cell>
     <cell>La configuración de SSO no funciona con Okta - Seguimiento</cell>
     <cell>2026-01-18</cell>
     <cell>2026-01-02</cell>
@@ -23,14 +23,14 @@
   </row>
   <row id="4">
     <cell>0</cell>
-    <cell>Abierto</cell>
+    <cell>Producción</cell>
     <cell>Solicitud de acceso al entorno sandbox - Caso 2</cell>
     <cell>2026-01-19</cell>
     <cell>2026-01-08</cell>
   </row>
   <row id="5">
   <cell>0</cell>
-    <cell>Abierto</cell>
+    <cell>Producción</cell>
     <cell>La configuración de SSO no funciona con Okta - Seguimiento</cell>
     <cell>2026-01-18</cell>
     <cell>2026-01-02</cell>
@@ -44,14 +44,14 @@
   </row>
   <row> id="7">
     <cell>0</cell>
-    <cell>Abierto</cell>
+    <cell>Producción</cell>
     <cell>Solicitud de acceso al entorno sandbox - Caso 2</cell>
     <cell>2026-01-19</cell>
     <cell>2026-01-08</cell>
   </row>
   <row id="8">
   <cell>0</cell>
-    <cell>Abierto</cell>
+    <cell>Producción</cell>
     <cell>La configuración de SSO no funciona con Okta - Seguimiento</cell>
     <cell>2026-01-18</cell>
     <cell>2026-01-02</cell>
