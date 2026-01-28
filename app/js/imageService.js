@@ -252,10 +252,34 @@ const ImageService = (function() {
     });
   }
   
+  /**
+   * Get images linked to a specific article
+   * @param {string} articleId - The article ID to filter images by
+   * @returns {Promise<Array<Object>>} Promise resolving to array of image objects linked to the article
+   */
+  function getImagesByArticle(articleId) {
+    // Validate articleId parameter
+    if (!articleId || typeof articleId !== 'string') {
+      return Promise.resolve([]);
+    }
+    
+    return loadMockData().then(data => {
+      const images = data.images || [];
+      
+      // Filter images that have this article in their linked_articles array
+      const linkedImages = images.filter(image => 
+        Array.isArray(image.linked_articles) && image.linked_articles.includes(articleId)
+      );
+      
+      return linkedImages;
+    });
+  }
+  
   // Public API
   return {
     getImages,
     getImageById,
+    getImagesByArticle,
     updateImageMetadata,
     deleteImage,
     bulkDeleteImages,

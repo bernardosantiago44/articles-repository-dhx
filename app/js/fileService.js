@@ -221,10 +221,34 @@ const FileService = (function() {
     });
   }
   
+  /**
+   * Get files linked to a specific article
+   * @param {string} articleId - The article ID to filter files by
+   * @returns {Promise<Array<Object>>} Promise resolving to array of file objects linked to the article
+   */
+  function getFilesByArticle(articleId) {
+    // Validate articleId parameter
+    if (!articleId || typeof articleId !== 'string') {
+      return Promise.resolve([]);
+    }
+    
+    return loadMockData().then(data => {
+      const files = data.files || [];
+      
+      // Filter files that have this article in their linked_articles array
+      const linkedFiles = files.filter(file => 
+        Array.isArray(file.linked_articles) && file.linked_articles.includes(articleId)
+      );
+      
+      return linkedFiles;
+    });
+  }
+  
   // Public API
   return {
     getFiles,
     getFileById,
+    getFilesByArticle,
     uploadFiles,
     updateFileMetadata,
     deleteFile,

@@ -751,13 +751,19 @@ function onArticleSelect(articleId) {
       // Render article details in sidebar
       var detailHtml = ArticleDetailUI.renderArticleDetailSidebar(article, companyName, showEditButton);
       appState.sidebarCell.attachHTMLString(detailHtml);
-      lucide.createIcons();
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
       
-      // Attach edit button event if admin
+      // Load attachments and attach edit button event after DOM is ready
       // Note: Using requestAnimationFrame to ensure DOM is ready after attachHTMLString
       // This is more efficient than setTimeout and executes on the next frame
-      if (showEditButton) {
-        requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        // Load images and files for the attachments section
+        ArticleDetailUI.loadAttachments(articleId);
+        
+        // Attach edit button event if admin
+        if (showEditButton) {
           var editBtn = document.getElementById('edit-article-btn');
           if (editBtn) {
             editBtn.onclick = function() {
@@ -766,8 +772,8 @@ function onArticleSelect(articleId) {
           } else {
             console.warn('Edit button not found in DOM');
           }
-        });
-      }
+        }
+      });
     })
     .catch(function(error) {
       console.error('Error loading article details:', error);
