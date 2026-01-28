@@ -54,15 +54,18 @@ const ArticleDetailUI = (function() {
   function renderExternalLinkSection(externalLink) {
     if (!externalLink || externalLink.trim() === '') {
       return `
-        <div style="
-          padding: 12px;
-          background-color: #f5f5f5;
-          border-radius: 4px;
-          color: #8c8c8c;
-          font-size: 13px;
-          font-style: italic;
-          text-align: center;
-        ">Sin enlace externo</div>
+        <div
+          class="p-3 
+            bg-gray-100 
+            rounded-lg 
+            text-gray-400 
+            text-[13px] 
+            italic 
+            text-center"
+        >
+          Sin enlace externo
+        </div>
+
       `;
     }
     
@@ -242,15 +245,17 @@ const ArticleDetailUI = (function() {
     // Empty state
     if (!hasAttachments) {
       return `
-        <div style="
-          padding: 12px;
-          background-color: #f5f5f5;
-          border-radius: 4px;
-          color: #8c8c8c;
-          font-size: 13px;
-          font-style: italic;
-          text-align: center;
-        ">Sin archivos adjuntos</div>
+        <div
+          class="p-3 
+            bg-gray-100 
+            rounded-lg
+            text-gray-400 
+            text-[13px] 
+            italic 
+            text-center"
+        >
+          Sin archivos adjuntos
+        </div>
       `;
     }
     
@@ -495,16 +500,12 @@ const ArticleDetailUI = (function() {
         ">${article.title}</h2>
         
         <!-- Context: Company Name -->
-        <div style="
-          font-size: 14px;
-          color: #595959;
-          margin-bottom: 20px;
-          padding: 10px;
-          background-color: #f5f5f5;
-          border-radius: 4px;
-        ">
+        <div
+          class="text-sm text-gray-600 mb-5 p-2.5 bg-gray-100 rounded-lg"
+        >
           <strong>Empresa:</strong> ${companyName}
         </div>
+
         
         <!-- Tags Section -->
         <div style="margin-bottom: 24px;">
