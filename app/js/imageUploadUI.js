@@ -244,7 +244,6 @@ const ImageUploadUI = (function() {
    */
   function handleImageSelection(files) {
     // Clean up previous previews
-    cleanupPreviews();
     selectedImages = [];
     
     const filesArray = Array.from(files);
