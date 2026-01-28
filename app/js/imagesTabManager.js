@@ -198,13 +198,20 @@ const ImagesTabManager = (function() {
    */
   function handleMasterCheckboxChange() {
     const allSelected = selectedImageIds.length === currentImages.length && currentImages.length > 0;
+    const grid = contentSection.getAttachedObject();
     
     if (allSelected) {
       // Deselect all
       selectedImageIds = [];
+      if (typeof(window.dhtmlXGridObject) == "function" && grid instanceof window.dhtmlXGridObject) {
+        grid.uncheckAll();
+      }
     } else {
       // Select all visible images
       selectedImageIds = currentImages.map(img => img.id);
+      if (typeof(window.dhtmlXGridObject) == "function" && grid instanceof window.dhtmlXGridObject) {
+        grid.checkAll();
+      }
     }
     
     updateSelectionUI();
