@@ -139,6 +139,14 @@ const ImagesTabManager = (function() {
                 </svg>
               </button>
             </div>
+            
+            <!-- Upload Button -->
+            <button 
+              id="images-upload-btn"
+              class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Subir imágenes
+            </button>
           </div>
         </div>
       </div>
@@ -154,6 +162,7 @@ const ImagesTabManager = (function() {
     const viewListBtn = document.getElementById('images-view-list-btn');
     const masterCheckbox = document.getElementById('images-master-checkbox');
     const bulkDeleteBtn = document.getElementById('images-bulk-delete-btn');
+    const uploadBtn = document.getElementById('images-upload-btn');
     
     // Search input
     if (searchInput) {
@@ -187,6 +196,13 @@ const ImagesTabManager = (function() {
     if (bulkDeleteBtn) {
       bulkDeleteBtn.addEventListener('click', () => {
         openBulkDeleteConfirmation();
+      });
+    }
+    
+    // Upload button
+    if (uploadBtn) {
+      uploadBtn.addEventListener('click', () => {
+        openUploadModal();
       });
     }
   }
@@ -624,6 +640,33 @@ const ImagesTabManager = (function() {
   }
   
   /**
+   * Open image upload modal
+   */
+  function openUploadModal() {
+    ImageUploadUI.openUploadModal(currentCompanyId, (uploadedImages) => {
+      // Reset selection state after upload
+      selectedImageIds = [];
+      
+      // Reset master checkbox
+      const masterCheckbox = document.getElementById('images-master-checkbox');
+      if (masterCheckbox) {
+        masterCheckbox.checked = false;
+        masterCheckbox.indeterminate = false;
+      }
+      
+      // Hide bulk delete button
+      const bulkDeleteBtn = document.getElementById('images-bulk-delete-btn');
+      if (bulkDeleteBtn) {
+        bulkDeleteBtn.classList.add('hidden');
+        bulkDeleteBtn.classList.remove('flex');
+      }
+      
+      // Refresh images gallery
+      refreshImagesList();
+    });
+  }
+  
+  /**
    * Refresh images list
    */
   function refreshImagesList() {
@@ -659,7 +702,8 @@ const ImagesTabManager = (function() {
     downloadImage,
     openEditDescriptionModal,
     deleteSingleImage,
-    closeDeleteConfirmationModal
+    closeDeleteConfirmationModal,
+    openUploadModal
   };
 })();
 
