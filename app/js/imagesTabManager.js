@@ -73,7 +73,7 @@ const ImagesTabManager = (function() {
         <!-- Controls Row -->
         <div class="flex items-center justify-between">
           <!-- Left Section: Master Checkbox + Search -->
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-4 w-1/2">
             <!-- Master Checkbox -->
             <div class="flex items-center">
               <input 
@@ -88,7 +88,7 @@ const ImagesTabManager = (function() {
             </div>
             
             <!-- Search Bar -->
-            <div class="flex-1 max-w-md">
+            <div class="w-2/3">
               <div class="relative">
                 <input 
                   type="text" 
