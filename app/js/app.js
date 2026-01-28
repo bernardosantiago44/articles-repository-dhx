@@ -155,6 +155,7 @@ grid_cell.hideHeader();
 var sidebar_cell = grid_sidebar_split.cells('b');
 sidebar_cell.setWidth(LAYOUT_CONFIG.SIDEBAR_WIDTH);
 sidebar_cell.hideHeader();
+sidebar_cell.setWidth(600);
 sidebar_cell.fixSize(0, 0);
 appState.sidebarCell = sidebar_cell;
 

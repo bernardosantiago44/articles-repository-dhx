@@ -144,18 +144,10 @@ const ArticleDetailUI = (function() {
     const statusConfig = getStatusConfiguration(article.status);
     
     const editButtonHtml = showEditButton ? `
-      <button id="edit-article-btn" style="
-        width: 100%;
-        padding: 12px;
-        background-color: #52c41a;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      " onmouseover="this.style.backgroundColor='#73d13d'" onmouseout="this.style.backgroundColor='#52c41a'">
+      <button
+        id="edit-article-btn"
+        class="w-full p-3 bg-green-500 hover:bg-green-400 text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-colors duration-200"
+      >
         Editar Artículo
       </button>
     ` : '';
