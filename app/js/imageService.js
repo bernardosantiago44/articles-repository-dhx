@@ -188,6 +188,65 @@ const ImageService = (function() {
     });
   }
   
+  /**
+   * Upload one or more images with optional description
+   * Simulates async image upload operation
+   * @param {FileList|Array<File>} imageFiles - Image files to upload
+   * @param {Array<Object>} imageDimensions - Array of {width, height} objects for each file
+   * @param {string} description - Optional description for the images (batch)
+   * @param {string} companyId - Company ID to associate images with
+   * @returns {Promise<Array<Object>>} Promise resolving to array of uploaded image objects
+   */
+  function uploadImages(imageFiles, imageDimensions, description, companyId) {
+    // Simulate network delay
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          const uploadedImages = [];
+          const currentDate = new Date().toISOString().split('T')[0];
+          
+          // Convert FileList to Array if needed
+          const filesArray = Array.from(imageFiles);
+          
+          console.log('Uploading ' + filesArray.length + ' images to ' + companyId);
+          
+          filesArray.forEach((file, index) => {
+            const imageId = 'img-' + Date.now() + '-' + index;
+            const fileSizeInKB = (file.size / 1024).toFixed(1);
+            const fileSizeDisplay = fileSizeInKB > 1024 
+              ? (fileSizeInKB / 1024).toFixed(1) + ' MB'
+              : fileSizeInKB + ' KB';
+            
+            // Get dimensions for this file
+            const dims = imageDimensions[index] || { width: 0, height: 0 };
+            const dimensionsDisplay = dims.width + 'x' + dims.height;
+            
+            const uploadedImage = {
+              id: imageId,
+              name: file.name,
+              dimensions: dimensionsDisplay,
+              size: fileSizeDisplay,
+              description: description || '',
+              upload_date: currentDate,
+              companyId: companyId,
+              thumbnail_url: 'https://picsum.photos/seed/' + imageId + '/400/225',
+              linked_articles: []
+            };
+            
+            uploadedImages.push(uploadedImage);
+          });
+          
+          // In a real implementation, this would save to backend
+          // For now, we just return the image objects
+          resolve(uploadedImages);
+          
+        } catch (error) {
+          reject(new Error('Error uploading images: ' + error.message));
+        }
+      }, 1500); // Simulate 1.5 second upload time
+    });
+  }
+  
   // Public API
   return {
     getImages,
@@ -196,6 +255,7 @@ const ImageService = (function() {
     deleteImage,
     bulkDeleteImages,
     downloadImage,
-    searchImages
+    searchImages,
+    uploadImages
   };
 })();
