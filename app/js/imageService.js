@@ -204,6 +204,7 @@ const ImageService = (function() {
         try {
           const uploadedImages = [];
           const currentDate = new Date().toISOString().split('T')[0];
+          const batchTimestamp = Date.now();
           
           // Convert FileList to Array if needed
           const filesArray = Array.from(imageFiles);
@@ -211,14 +212,18 @@ const ImageService = (function() {
           console.log('Uploading ' + filesArray.length + ' images to ' + companyId);
           
           filesArray.forEach((file, index) => {
-            const imageId = 'img-' + Date.now() + '-' + index;
+            // Generate unique ID with timestamp, random string, and index
+            const randomSuffix = Math.random().toString(36).substring(2, 8);
+            const imageId = 'img-' + batchTimestamp + '-' + randomSuffix + '-' + index;
             const fileSizeInKB = (file.size / 1024).toFixed(1);
             const fileSizeDisplay = fileSizeInKB > 1024 
               ? (fileSizeInKB / 1024).toFixed(1) + ' MB'
               : fileSizeInKB + ' KB';
             
-            // Get dimensions for this file
-            const dims = imageDimensions[index] || { width: 0, height: 0 };
+            // Get dimensions for this file with validation
+            const dims = (imageDimensions && imageDimensions[index]) 
+              ? imageDimensions[index] 
+              : { width: 0, height: 0 };
             const dimensionsDisplay = dims.width + 'x' + dims.height;
             
             const uploadedImage = {

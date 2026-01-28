@@ -39,7 +39,7 @@ const ImageUploadUI = (function() {
     
     currentWindow = new dhtmlXWindows();
     const uploadWindow = currentWindow.createWindow('image_upload_window', 0, 0, 700, 700);
-    uploadWindow.setText('Subir imagen');
+    uploadWindow.setText('Subir imágenes');
     uploadWindow.centerOnScreen();
     uploadWindow.button('minmax').hide();
     
@@ -180,11 +180,12 @@ const ImageUploadUI = (function() {
     fileInput.addEventListener('change', (e) => {
       const files = e.target.files;
       handleImageSelection(files);
+      // Reset file input to allow re-selecting the same files
+      fileInput.value = '';
     });
     
     // Cancel button
     cancelBtn.addEventListener('click', () => {
-      cleanupPreviews();
       selectedImages = [];
       uploadWindow.close();
     });
@@ -211,7 +212,7 @@ const ImageUploadUI = (function() {
           // Show success message
           dhtmlx.message({
             type: 'success',
-            text: `${uploadedImages.length} imagen${uploadedImages.length > 1 ? 'es subidas' : ' subida'} correctamente`
+            text: uploadedImages.length + (uploadedImages.length > 1 ? ' imágenes subidas' : ' imagen subida') + ' correctamente'
           });
           
           // Call completion callback (refresh gallery)
@@ -220,7 +221,6 @@ const ImageUploadUI = (function() {
           }
           
           // Clean up and close window
-          cleanupPreviews();
           selectedImages = [];
           uploadWindow.close();
         })
@@ -301,18 +301,32 @@ const ImageUploadUI = (function() {
   function processImages(files) {
     const promises = files.map(file => processImageFile(file));
     
-    Promise.all(promises)
+    Promise.allSettled(promises)
       .then(results => {
-        selectedImages = results;
+        // Filter successful results and track failures
+        const successfulImages = [];
+        const failedFiles = [];
+        
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            successfulImages.push(result.value);
+          } else {
+            failedFiles.push(files[index].name);
+            console.error('Failed to process image:', files[index].name, result.reason);
+          }
+        });
+        
+        selectedImages = successfulImages;
         updateSelectedImagesGallery();
         updateSubmitButtonState();
-      })
-      .catch(error => {
-        console.error('Error processing images:', error);
-        dhtmlx.message({
-          type: 'error',
-          text: 'Error al procesar las imágenes'
-        });
+        
+        // Show warning for failed files
+        if (failedFiles.length > 0) {
+          dhtmlx.message({
+            type: 'error',
+            text: 'No se pudieron procesar: ' + failedFiles.join(', ')
+          });
+        }
       });
   }
   
@@ -424,11 +438,8 @@ const ImageUploadUI = (function() {
    */
   function removeImage(index) {
     if (index >= 0 && index < selectedImages.length) {
-      // Revoke the preview URL to free memory
-      if (selectedImages[index].previewUrl) {
-        URL.revokeObjectURL(selectedImages[index].previewUrl);
-      }
-      
+      // Note: data: URLs from FileReader don't need to be revoked
+      // They are garbage collected when no longer referenced
       selectedImages.splice(index, 1);
       updateSelectedImagesGallery();
       updateSubmitButtonState();
@@ -443,17 +454,6 @@ const ImageUploadUI = (function() {
     if (submitBtn) {
       submitBtn.disabled = selectedImages.length === 0;
     }
-  }
-  
-  /**
-   * Clean up preview URLs to prevent memory leaks
-   */
-  function cleanupPreviews() {
-    selectedImages.forEach(imageData => {
-      if (imageData.previewUrl && imageData.previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(imageData.previewUrl);
-      }
-    });
   }
   
   // Public API
