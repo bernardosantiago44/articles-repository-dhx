@@ -173,6 +173,9 @@ var images = tabbar.cells('images');
 
 // Store global reference to files tab for later initialization
 appState.filesTab = files;
+// Store global reference to images tab for later initialization
+appState.imagesTab = images;
+appState.imagesTabInitialized = false;
 
 // ============================================================================
 // Initialize Application
@@ -638,6 +641,26 @@ function initializeFilesTab(companyId) {
 }
 
 /**
+ * Initialize the Images tab for the selected company
+ * @param {string} companyId - Company ID
+ */
+function initializeImagesTab(companyId) {
+  if (!appState.imagesTab) {
+    console.error('Images tab not available');
+    return;
+  }
+  
+  // Initialize images tab only once
+  if (!appState.imagesTabInitialized) {
+    ImagesTabManager.initializeImagesTab(appState.imagesTab, companyId);
+    appState.imagesTabInitialized = true;
+  } else {
+    // Update company if already initialized
+    ImagesTabManager.updateCompany(companyId);
+  }
+}
+
+/**
  * Load articles for a specific company and populate the grid
  * @param {string} companyId - Company ID to load articles for
  * @returns {Promise} Promise that resolves when articles are loaded
@@ -693,6 +716,9 @@ function loadArticlesForCompany(companyId) {
       
       // Initialize Files tab with current company
       initializeFilesTab(companyId);
+      
+      // Initialize Images tab with current company
+      initializeImagesTab(companyId);
       
       main_content.progressOff();
       return articles;
