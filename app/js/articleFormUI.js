@@ -55,9 +55,8 @@ var ArticleFormUI = (function() {
     }
     // Fallback if dataModels not loaded
     return [
-      { value: 'Abierto', text: 'Abierto', color: '#52c41a' },
-      { value: 'En progreso', text: 'En progreso', color: '#1890ff' },
-      { value: 'Esperando', text: 'Esperando', color: '#faad14' },
+      { value: 'Producción', text: 'Producción', color: '#52c41a' },
+      { value: 'Borrador', text: 'Borrador', color: '#1890ff' },
       { value: 'Cerrado', text: 'Cerrado', color: '#8c8c8c' }
     ];
   }

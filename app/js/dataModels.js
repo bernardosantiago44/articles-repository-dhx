@@ -18,7 +18,7 @@
  * @property {string} description - Detailed description of the article
  * @property {string} externalLink - External tracker link
  * @property {string} clientComments - Comments from the client
- * @property {('Abierto'|'En progreso'|'Esperando'|'Cerrado')} status - Current status
+ * @property {('Producción'|'Borrador'|'Cerrado')} status - Current status
  * @property {string} companyId - Foreign key to Company
  * @property {Array<string>} tags - Array of tag IDs (company-scoped)
  * @property {Array<string>} attachedImages - Array of image IDs attached to the article
@@ -32,20 +32,15 @@
  * Defines available statuses with their display properties
  */
 const articleStatusConfiguration = {
-  'Abierto': {
-    label: 'Abierto',
+  'Producción': {
+    label: 'Producción',
     color: '#52c41a',
     bulletColor: '#52c41a'
   },
-  'En progreso': {
-    label: 'En progreso',
+  'Borrador': {
+    label: 'Borrador',
     color: '#1890ff',
     bulletColor: '#1890ff'
-  },
-  'Esperando': {
-    label: 'Esperando',
-    color: '#faad14',
-    bulletColor: '#faad14'
   },
   'Cerrado': {
     label: 'Cerrado',

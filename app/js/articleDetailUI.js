@@ -130,7 +130,7 @@ const ArticleDetailUI = (function() {
    *   - id {string}: Article ID
    *   - title {string}: Article title
    *   - description {string}: Article description
-   *   - status {string}: Article status (Abierto|En progreso|Esperando|Cerrado)
+   *   - status {string}: Article status (Producción|Borrador|Cerrado)
    *   - tags {Array<{label: string, color: string}>}: Array of tag objects
    *   - externalLink {string}: External link URL
    *   - clientComments {string}: Client comments
