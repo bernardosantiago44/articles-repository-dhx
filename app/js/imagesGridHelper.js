@@ -67,13 +67,18 @@ const ImagesGridHelper = (function() {
         images.forEach(image => {
           const rowId = image.id;
           
+          // Escape user data for grid cells
+          const escapedDimensions = Utils.escapeHtml(image.dimensions) || '—';
+          const escapedSize = Utils.escapeHtml(image.size);
+          const escapedDescription = Utils.escapeHtml(image.description) || '—';
+          
           grid.addRow(rowId, [
             0,  // Unchecked checkbox
             renderImageNameCell(image),
-            image.dimensions || '—',
-            image.size,
-            image.description || '—',
-            formatDate(image.upload_date),
+            escapedDimensions,
+            escapedSize,
+            escapedDescription,
+            Utils.formatDate(image.upload_date),
             renderArticlesCell(image.linked_articles),
             renderActionsCell(image.id)
           ]);
@@ -94,12 +99,13 @@ const ImagesGridHelper = (function() {
    * @returns {string} HTML string for the cell
    */
   function renderImageNameCell(image) {
-    const fileExtension = getFileExtension(image.name);
+    const fileExtension = Utils.getFileExtension(image.name);
+    const escapedName = Utils.escapeHtml(image.name);
     
     return `
       <div style="display: flex; align-items: center; gap: 8px;">
         <i class="fa fa-file-image-o" style="font-size: 18px; color: #64748b;"></i>
-        <span style="font-weight: 500;">${image.name}</span>
+        <span style="font-weight: 500;">${escapedName}</span>
       </div>
     `;
   }
@@ -168,38 +174,6 @@ const ImagesGridHelper = (function() {
         </button>
       </div>
     `;
-  }
-  
-  /**
-   * Get file extension from filename
-   * @param {string} filename - File name
-   * @returns {string} File extension
-   */
-  function getFileExtension(filename) {
-    const parts = filename.split('.');
-    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
-  }
-  
-  /**
-   * Format date for display
-   * @param {string} dateString - Date in YYYY-MM-DD format
-   * @returns {string} Formatted date
-   */
-  function formatDate(dateString) {
-    if (!dateString) return '—';
-    
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const parts = dateString.split('-');
-    
-    if (parts.length === 3) {
-      const day = parseInt(parts[2], 10);
-      const month = months[parseInt(parts[1], 10) - 1];
-      const year = parts[0];
-      
-      return `${day} ${month} ${year}`;
-    }
-    
-    return dateString;
   }
   
   /**

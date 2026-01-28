@@ -39,24 +39,32 @@ const ImagesGalleryViewUI = (function() {
    * @returns {string} HTML string for a card
    */
   function renderCard(image, selectedImageIds = []) {
-    const formattedDate = formatDate(image.upload_date);
+    const formattedDate = Utils.formatDate(image.upload_date);
     const isSelected = selectedImageIds.includes(image.id);
-    const fileExtension = getFileExtension(image.name);
+    const fileExtension = Utils.getFileExtension(image.name);
     const extensionColor = getExtensionBadgeColor(fileExtension);
+    
+    // Escape user-controlled data to prevent XSS
+    const escapedName = Utils.escapeHtml(image.name);
+    const escapedDescription = Utils.escapeHtml(image.description);
+    const escapedDimensions = Utils.escapeHtml(image.dimensions);
+    const escapedSize = Utils.escapeHtml(image.size);
+    const escapedThumbnailUrl = Utils.escapeHtml(image.thumbnail_url);
+    const escapedId = Utils.escapeHtml(image.id);
     
     return `
       <div 
         class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer relative group ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}"
-        data-image-id="${image.id}"
+        data-image-id="${escapedId}"
       >
         <!-- Checkbox -->
         <div class="absolute top-3 left-3 z-10">
           <input 
             type="checkbox" 
             class="image-card-checkbox w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer bg-white"
-            data-image-id="${image.id}"
+            data-image-id="${escapedId}"
             ${isSelected ? 'checked' : ''}
-            onclick="event.stopPropagation(); ImagesGalleryViewUI.handleCheckboxChange('${image.id}')"
+            onclick="event.stopPropagation(); ImagesGalleryViewUI.handleCheckboxChange('${escapedId}')"
           />
         </div>
         
@@ -68,10 +76,10 @@ const ImagesGalleryViewUI = (function() {
         </div>
         
         <!-- Thumbnail with Lazy Loading -->
-        <div class="relative aspect-video bg-gray-100 overflow-hidden" onclick="ImagesGalleryViewUI.handleCardClick('${image.id}')">
+        <div class="relative aspect-video bg-gray-100 overflow-hidden" onclick="ImagesGalleryViewUI.handleCardClick('${escapedId}')">
           <img 
-            data-src="${image.thumbnail_url}"
-            alt="${image.name}"
+            data-src="${escapedThumbnailUrl}"
+            alt="${escapedName}"
             class="lazy-image w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             style="opacity: 0; transition: opacity 0.3s ease-in-out;"
           />
@@ -86,7 +94,7 @@ const ImagesGalleryViewUI = (function() {
           <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <div class="flex items-center space-x-2">
               <button 
-                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleViewImage('${image.id}')"
+                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleViewImage('${escapedId}')"
                 class="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                 title="Ver imagen"
               >
@@ -96,7 +104,7 @@ const ImagesGalleryViewUI = (function() {
                 </svg>
               </button>
               <button 
-                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleDownloadImage('${image.id}')"
+                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleDownloadImage('${escapedId}')"
                 class="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                 title="Descargar"
               >
@@ -105,7 +113,7 @@ const ImagesGalleryViewUI = (function() {
                 </svg>
               </button>
               <button 
-                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleEditImage('${image.id}')"
+                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleEditImage('${escapedId}')"
                 class="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                 title="Editar descripción"
               >
@@ -114,7 +122,7 @@ const ImagesGalleryViewUI = (function() {
                 </svg>
               </button>
               <button 
-                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleDeleteImage('${image.id}')"
+                onclick="event.stopPropagation(); ImagesGalleryViewUI.handleDeleteImage('${escapedId}')"
                 class="p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
                 title="Eliminar"
               >
@@ -127,17 +135,17 @@ const ImagesGalleryViewUI = (function() {
         </div>
         
         <!-- Image Info -->
-        <div class="p-4" onclick="ImagesGalleryViewUI.handleCardClick('${image.id}')">
-          <h3 class="text-sm font-semibold text-gray-900 mb-1 truncate" title="${image.name}">
-            ${image.name}
+        <div class="p-4" onclick="ImagesGalleryViewUI.handleCardClick('${escapedId}')">
+          <h3 class="text-sm font-semibold text-gray-900 mb-1 truncate" title="${escapedName}">
+            ${escapedName}
           </h3>
           <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
-            <span>${image.dimensions}</span>
-            <span>${image.size}</span>
+            <span>${escapedDimensions}</span>
+            <span>${escapedSize}</span>
           </div>
-          ${image.description ? `
-            <p class="text-xs text-gray-600 line-clamp-2 mb-2" title="${image.description}">
-              ${image.description}
+          ${escapedDescription ? `
+            <p class="text-xs text-gray-600 line-clamp-2 mb-2" title="${escapedDescription}">
+              ${escapedDescription}
             </p>
           ` : ''}
           <div class="flex items-center justify-between pt-2 border-t border-gray-100">
@@ -172,16 +180,6 @@ const ImagesGalleryViewUI = (function() {
   }
   
   /**
-   * Get file extension from filename
-   * @param {string} filename - File name
-   * @returns {string} File extension
-   */
-  function getFileExtension(filename) {
-    const parts = filename.split('.');
-    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
-  }
-  
-  /**
    * Get Tailwind color classes for extension badge
    * @param {string} extension - File extension
    * @returns {string} Tailwind CSS classes for badge color
@@ -199,28 +197,6 @@ const ImagesGalleryViewUI = (function() {
     };
     
     return colorMap[extension] || 'bg-gray-100 text-gray-800';
-  }
-  
-  /**
-   * Format date for display
-   * @param {string} dateString - Date in YYYY-MM-DD format
-   * @returns {string} Formatted date
-   */
-  function formatDate(dateString) {
-    if (!dateString) return '—';
-    
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const parts = dateString.split('-');
-    
-    if (parts.length === 3) {
-      const day = parseInt(parts[2], 10);
-      const month = months[parseInt(parts[1], 10) - 1];
-      const year = parts[0];
-      
-      return `${day} ${month} ${year}`;
-    }
-    
-    return dateString;
   }
   
   /**

@@ -157,7 +157,7 @@ const ImagesTabManager = (function() {
     
     // Search input
     if (searchInput) {
-      searchInput.addEventListener('input', debounce((e) => {
+      searchInput.addEventListener('input', Utils.debounce((e) => {
         currentSearchTerm = e.target.value;
         loadImages();
       }, 300));
@@ -439,9 +439,12 @@ const ImagesTabManager = (function() {
           return;
         }
         
+        // Escape image name for display
+        const escapedName = Utils.escapeHtml(image.name);
+        
         showDeleteConfirmationModal(
           '¿Eliminar imagen?',
-          `¿Estás seguro de que deseas eliminar "${image.name}"?`,
+          `¿Estás seguro de que deseas eliminar "${escapedName}"?`,
           () => {
             ImageService.deleteImage(imageId)
               .then(() => {
@@ -636,20 +639,6 @@ const ImagesTabManager = (function() {
     }
     
     loadImages();
-  }
-  
-  /**
-   * Debounce function for search input
-   * @param {Function} func - Function to debounce
-   * @param {number} wait - Wait time in milliseconds
-   * @returns {Function} Debounced function
-   */
-  function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    };
   }
   
   // Public API

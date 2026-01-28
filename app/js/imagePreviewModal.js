@@ -42,6 +42,18 @@ const ImagePreviewModal = (function() {
     // Close existing modal if any
     closePreview();
     
+    // Escape user-controlled data to prevent XSS
+    const escapedName = Utils.escapeHtml(image.name);
+    const escapedDescription = Utils.escapeHtml(image.description);
+    const escapedDimensions = Utils.escapeHtml(image.dimensions);
+    const escapedSize = Utils.escapeHtml(image.size);
+    const escapedThumbnailUrl = Utils.escapeHtml(image.thumbnail_url);
+    const escapedId = Utils.escapeHtml(image.id);
+    
+    // Build higher resolution URL (with safe base URL)
+    const highResUrl = image.thumbnail_url ? 
+      Utils.escapeHtml(image.thumbnail_url.replace('/400/', '/1200/').replace('/225', '/675')) : '';
+    
     // Create modal HTML
     const modalHTML = `
       <div 
@@ -96,8 +108,8 @@ const ImagePreviewModal = (function() {
           <!-- Main Image -->
           <img 
             id="image-preview-img"
-            src="${image.thumbnail_url.replace('/400/', '/1200/').replace('/225', '/675')}"
-            alt="${image.name}"
+            src="${highResUrl}"
+            alt="${escapedName}"
             class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl opacity-0 transition-opacity duration-300"
             onload="ImagePreviewModal.handleImageLoad()"
             onerror="ImagePreviewModal.handleImageError()"
@@ -109,18 +121,18 @@ const ImagePreviewModal = (function() {
             class="mt-4 px-4 py-3 bg-black bg-opacity-50 rounded-lg text-white max-w-lg"
             onclick="event.stopPropagation()"
           >
-            <h3 class="text-lg font-semibold mb-1 truncate">${image.name}</h3>
+            <h3 class="text-lg font-semibold mb-1 truncate">${escapedName}</h3>
             <div class="flex items-center space-x-4 text-sm text-gray-300">
-              <span>${image.dimensions}</span>
+              <span>${escapedDimensions}</span>
               <span>•</span>
-              <span>${image.size}</span>
+              <span>${escapedSize}</span>
               ${image.linked_articles && image.linked_articles.length > 0 ? `
                 <span>•</span>
                 <span>${image.linked_articles.length} artículo${image.linked_articles.length > 1 ? 's' : ''}</span>
               ` : ''}
             </div>
-            ${image.description ? `
-              <p class="mt-2 text-sm text-gray-200">${image.description}</p>
+            ${escapedDescription ? `
+              <p class="mt-2 text-sm text-gray-200">${escapedDescription}</p>
             ` : ''}
           </div>
         </div>
@@ -128,7 +140,7 @@ const ImagePreviewModal = (function() {
         <!-- Action Buttons -->
         <div class="absolute bottom-4 right-4 flex items-center space-x-2">
           <button 
-            onclick="event.stopPropagation(); ImagePreviewModal.downloadImage('${image.id}')"
+            onclick="event.stopPropagation(); ImagePreviewModal.downloadImage('${escapedId}')"
             class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg transition-colors flex items-center space-x-2"
             title="Descargar"
           >

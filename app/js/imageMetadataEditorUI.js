@@ -60,6 +60,13 @@ const ImageMetadataEditorUI = (function() {
    * @returns {string} HTML string for the edit form
    */
   function renderEditForm(image) {
+    // Escape user-controlled data to prevent XSS
+    const escapedName = Utils.escapeHtml(image.name);
+    const escapedDescription = Utils.escapeHtml(image.description);
+    const escapedDimensions = Utils.escapeHtml(image.dimensions);
+    const escapedSize = Utils.escapeHtml(image.size);
+    const escapedThumbnailUrl = Utils.escapeHtml(image.thumbnail_url);
+    
     return `
       <div class="p-6 bg-white h-full flex flex-col">
         <!-- Image Preview -->
@@ -69,8 +76,8 @@ const ImageMetadataEditorUI = (function() {
           </label>
           <div class="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
             <img 
-              src="${image.thumbnail_url}"
-              alt="${image.name}"
+              src="${escapedThumbnailUrl}"
+              alt="${escapedName}"
               class="w-full h-full object-contain"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
             />
@@ -89,7 +96,7 @@ const ImageMetadataEditorUI = (function() {
           </label>
           <div class="flex items-center space-x-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
             <i class="fa fa-file-image-o text-gray-400"></i>
-            <span class="text-sm text-gray-700 font-medium">${image.name}</span>
+            <span class="text-sm text-gray-700 font-medium">${escapedName}</span>
           </div>
         </div>
         
@@ -100,7 +107,7 @@ const ImageMetadataEditorUI = (function() {
               Dimensiones
             </label>
             <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
-              ${image.dimensions || '—'}
+              ${escapedDimensions || '—'}
             </div>
           </div>
           <div>
@@ -108,7 +115,7 @@ const ImageMetadataEditorUI = (function() {
               Tamaño
             </label>
             <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
-              ${image.size || '—'}
+              ${escapedSize || '—'}
             </div>
           </div>
         </div>
@@ -123,7 +130,7 @@ const ImageMetadataEditorUI = (function() {
             rows="4"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             placeholder="Agrega una descripción para la imagen..."
-          >${image.description || ''}</textarea>
+          >${escapedDescription || ''}</textarea>
           <p class="mt-1 text-xs text-gray-500">
             Esta descripción ayudará a otros usuarios a entender el contenido de la imagen.
           </p>
