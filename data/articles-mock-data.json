@@ -411,7 +411,7 @@
       "size": "892.4 KB",
       "description": "Mockups de los nuevos widgets del dashboard",
       "upload_date": "2026-01-12",
-      "companyId": "co-03",
+      "companyId": "co-01",
       "thumbnail_url": "https://picsum.photos/seed/img015/400/225",
       "linked_articles": ["issue-0008"]
     },
@@ -422,8 +422,19 @@
       "size": "356.1 KB",
       "description": "Guía de identidad visual de la marca",
       "upload_date": "2026-01-08",
-      "companyId": "co-03",
+      "companyId": "co-01",
       "thumbnail_url": "https://picsum.photos/seed/img016/400/225",
+      "linked_articles": []
+    },
+    {
+      "id": "img-017",
+      "name": "team-collaboration.jpg",
+      "dimensions": "3000x2000",
+      "size": "1.9 MB",
+      "description": "Foto del equipo colaborando en el proyecto",
+      "upload_date": "2026-01-02",
+      "companyId": "co-01",
+      "thumbnail_url": "https://picsum.photos/seed/img017/400/225",
       "linked_articles": []
     }
   ]

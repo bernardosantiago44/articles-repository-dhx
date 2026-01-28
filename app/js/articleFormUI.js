@@ -253,7 +253,7 @@ var ArticleFormUI = (function() {
                 
                 <!-- Available Images -->
                 <div class="text-xs font-medium text-gray-500 mb-2">Imágenes disponibles:</div>
-                <div id="article-form-available-images" class="max-h-[150px] overflow-y-auto border border-gray-200 rounded-md">
+                <div id="article-form-available-images" class="overflow-y-auto border border-gray-200 rounded-md">
                   <!-- Will be populated dynamically -->
                 </div>
               </div>
@@ -292,7 +292,7 @@ var ArticleFormUI = (function() {
                 
                 <!-- Available Files -->
                 <div class="text-xs font-medium text-gray-500 mb-2">Archivos disponibles:</div>
-                <div id="article-form-available-files" class="max-h-[150px] overflow-y-auto border border-gray-200 rounded-md">
+                <div id="article-form-available-files" class="overflow-y-auto border border-gray-200 rounded-md">
                   <!-- Will be populated dynamically -->
                 </div>
               </div>

@@ -73,13 +73,13 @@ const FilesTabManager = (function() {
         <!-- Controls Row -->
         <div class="flex items-center justify-between">
           <!-- Search Bar -->
-          <div class="flex-1 max-w-md">
+          <div class="flex-1 w-full">
             <div class="relative">
               <input 
                 type="text" 
                 id="files-search-input"
                 placeholder="Buscar archivos..."
-                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-1/3 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
