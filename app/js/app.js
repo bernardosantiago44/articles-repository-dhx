@@ -922,7 +922,7 @@ function openCompanySettingsForm() {
     return;
   }
   
-  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, function(newSettings) {
+  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, (newSettings) => {
     // Callback when settings are saved - refresh the current view to apply permission changes
     refreshAppStateForSettings(newSettings);
   });
@@ -942,10 +942,6 @@ function refreshAppStateForSettings(newSettings) {
     updateUploadButtonVisibility('files-upload-btn', newSettings.allow_user_uploads);
     updateUploadButtonVisibility('images-upload-btn', newSettings.allow_user_uploads);
   }
-  
-  // Re-initialize any views that depend on settings
-  // For now, this mainly affects non-admin users
-  console.log('Company settings updated, UI refreshed with:', newSettings);
 }
 
 /**
