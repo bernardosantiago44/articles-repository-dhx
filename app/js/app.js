@@ -79,12 +79,15 @@ header_trailing.fixSize(1, 0);
 var header_toolbar = header_trailing.attachToolbar();
 header_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
 header_toolbar.addButton('new_article', 1, 'Nuevo artículo');
+header_toolbar.addButton('edit_company', 2, 'Editar Compañía');
 
 // Toolbar Click Handler
 header_toolbar.attachEvent('onClick', function(id) {
   if (id === 'new_article') {
     openNewArticleForm();
-  } 
+  } else if (id === 'edit_company') {
+    openCompanySettingsForm();
+  }
 });
 
 main_layout.setSizes();
@@ -240,6 +243,7 @@ function initializeAdminView() {
 function initializeRegularUserView() {
   // Hide the "Nuevo artículo" button for regular users
   header_toolbar.hideItem('new_article');
+  header_toolbar.hideItem('edit_company');
   // Hide the "Administrar Etiquetas" button for regular users
   grid_toolbar.hideItem('manage_tags');
   // Hide the "Editar Etiquetas (Selección)" button for regular users (Admin-only feature)
@@ -313,6 +317,11 @@ function createFilterFormForRegularUser() {
   });
 }
 
+/**
+ * Creates a default company select menu.
+ * @param companies
+ * @return {string} Complete HTML for the menu.
+ */
 function createCompanyComboOptions(companies) {
   var companyPickerHtml = '';
 if (companies && companies.length > 0) {
@@ -900,6 +909,23 @@ function openBulkTagEditor() {
 }
 
 // ============================================================================
+// Company Settings Functions
+// ============================================================================
+function openCompanySettingsForm() {
+  if (appState.currentUser.role !== 'admin') return;
+  
+  if (!appState.selectedCompanyId) {
+    dhtmlx.alert({
+      title: 'Atención',
+      text: 'Por favor seleccione una empresa primero.'
+    });
+    return;
+  }
+  
+  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, () => {});
+}
+
+// ============================================================================
 // Article Form Functions
 // ============================================================================
 
@@ -907,6 +933,7 @@ function openBulkTagEditor() {
  * Open the form for creating a new article
  */
 function openNewArticleForm() {
+  if (appState.currentUser.role !== 'admin') return;
   // Check if a company is selected
   if (!appState.selectedCompanyId) {
     dhtmlx.alert({
