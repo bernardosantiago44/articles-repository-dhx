@@ -19,9 +19,33 @@
     { "id": "tag-017", "name": "High Priority", "color": "#ef4444", "description": "Alta prioridad", "companyId": "co-03" }
   ],
   "companies": [
-    { "id": "co-01", "name": "Acme Corporation" },
-    { "id": "co-02", "name": "Global Tech Solutions" },
-    { "id": "co-03", "name": "Innovation Labs Inc." }
+    { 
+      "id": "co-01", 
+      "name": "Acme Corporation",
+      "settings": {
+        "allow_user_uploads": true,
+        "allow_user_tag_creation": true,
+        "require_client_comments": false
+      }
+    },
+    { 
+      "id": "co-02", 
+      "name": "Global Tech Solutions",
+      "settings": {
+        "allow_user_uploads": false,
+        "allow_user_tag_creation": false,
+        "require_client_comments": true
+      }
+    },
+    { 
+      "id": "co-03", 
+      "name": "Innovation Labs Inc.",
+      "settings": {
+        "allow_user_uploads": true,
+        "allow_user_tag_creation": false,
+        "require_client_comments": false
+      }
+    }
   ],
   "articles": [
     {

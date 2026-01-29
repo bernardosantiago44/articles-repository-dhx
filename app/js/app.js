@@ -922,7 +922,62 @@ function openCompanySettingsForm() {
     return;
   }
   
-  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, () => {});
+  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, function(newSettings) {
+    // Callback when settings are saved - refresh the current view to apply permission changes
+    refreshAppStateForSettings(newSettings);
+  });
+}
+
+/**
+ * Refresh app state when company settings change
+ * This ensures UI elements are shown/hidden based on new settings
+ * @param {CompanySettings} newSettings - The updated settings
+ */
+function refreshAppStateForSettings(newSettings) {
+  // Clear CompanyService cache to ensure fresh data
+  CompanyService.clearCache();
+  
+  // Refresh Files tab upload button visibility for non-admin users
+  if (UserService.isRegularUser()) {
+    updateFilesTabUploadButtonVisibility(newSettings);
+    updateImagesTabUploadButtonVisibility(newSettings);
+  }
+  
+  // Re-initialize any views that depend on settings
+  // For now, this mainly affects non-admin users
+  console.log('Company settings updated, UI refreshed with:', newSettings);
+}
+
+/**
+ * Update the Files tab upload button visibility based on settings
+ * @param {CompanySettings} settings - Current company settings
+ */
+function updateFilesTabUploadButtonVisibility(settings) {
+  const uploadBtn = document.getElementById('files-upload-btn');
+  if (uploadBtn) {
+    if (settings.allow_user_uploads) {
+      uploadBtn.style.display = '';
+      uploadBtn.title = '';
+    } else {
+      uploadBtn.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * Update the Images tab upload button visibility based on settings
+ * @param {CompanySettings} settings - Current company settings
+ */
+function updateImagesTabUploadButtonVisibility(settings) {
+  const uploadBtn = document.getElementById('images-upload-btn');
+  if (uploadBtn) {
+    if (settings.allow_user_uploads) {
+      uploadBtn.style.display = '';
+      uploadBtn.title = '';
+    } else {
+      uploadBtn.style.display = 'none';
+    }
+  }
 }
 
 // ============================================================================

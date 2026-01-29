@@ -49,6 +49,9 @@ const ImagesTabManager = (function() {
     // Setup event handlers
     setTimeout(() => {
       setupTopSectionHandlers();
+      
+      // Apply permission-based visibility
+      applyUploadPermissions();
     }, 100);
     
     return {
@@ -56,6 +59,34 @@ const ImagesTabManager = (function() {
       imagesGrid,
       contentSection
     };
+  }
+  
+  /**
+   * Apply upload permissions based on company settings
+   * Hides/shows upload button for non-admin users
+   */
+  function applyUploadPermissions() {
+    // Admins always have full access
+    if (UserService.isAdministrator()) {
+      return;
+    }
+    
+    // For regular users, check company settings
+    CompanyService.canUsersUpload(currentCompanyId)
+      .then(function(canUpload) {
+        const uploadBtn = document.getElementById('images-upload-btn');
+        if (uploadBtn) {
+          if (canUpload) {
+            uploadBtn.style.display = '';
+            uploadBtn.title = '';
+            uploadBtn.classList.remove('hidden');
+          } else {
+            // Hide button
+            uploadBtn.style.display = 'none';
+            uploadBtn.classList.add('hidden');
+          }
+        }
+      });
   }
   
   /**
