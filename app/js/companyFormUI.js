@@ -10,7 +10,7 @@
  * Dependencies: 
  * - dataModels.js
  * - companyService.js
- * - Tailwind CSS (for styling)
+ * - Uses inline styles for DHTMLX compatibility
  */
 
 const CompanyFormUI = (function() {
@@ -58,7 +58,7 @@ const CompanyFormUI = (function() {
             settings: [
                 {
                     key: 'require_client_comments',
-                    label: 'Hacer obligatorios los comentarios del cliente al cerrar ticket',
+                    label: 'Hacer obligatorios los comentarios del cliente al cerrar el ticket',
                     description: 'Cuando está activo, se requerirá que el campo de comentarios del cliente tenga contenido antes de poder cerrar un ticket.',
                     defaultValue: false
                 }
@@ -102,7 +102,7 @@ const CompanyFormUI = (function() {
     }
     
     /**
-     * Render the settings form HTML with Tailwind CSS
+     * Render the settings form HTML with inline styles (for DHTMLX compatibility)
      * @returns {string} HTML string for the settings form
      */
     function renderSettingsForm() {
@@ -304,8 +304,8 @@ const CompanyFormUI = (function() {
                         expire: 3000
                     });
                     
-                    // Call the save callback if provided
-                    if (formState.onSaveCallback) {
+                    // Call the save callback if provided and is a function
+                    if (formState.onSaveCallback && typeof formState.onSaveCallback === 'function') {
                         formState.onSaveCallback(newSettings);
                     }
                     

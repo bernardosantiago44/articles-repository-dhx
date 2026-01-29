@@ -71,6 +71,11 @@ const FilesTabManager = (function() {
       return;
     }
     
+    // Check if company is selected
+    if (!currentCompanyId) {
+      return;
+    }
+    
     // For regular users, check company settings
     CompanyService.canUsersUpload(currentCompanyId)
       .then(function(canUpload) {
@@ -78,13 +83,18 @@ const FilesTabManager = (function() {
         if (uploadBtn) {
           if (canUpload) {
             uploadBtn.style.display = '';
-            uploadBtn.title = '';
-            uploadBtn.classList.remove('hidden');
           } else {
-            // Hide button and add tooltip
+            // Hide button for users without upload permission
             uploadBtn.style.display = 'none';
-            uploadBtn.classList.add('hidden');
           }
+        }
+      })
+      .catch(function(error) {
+        console.error('Error checking upload permissions:', error);
+        // Default to hiding the button if there's an error
+        const uploadBtn = document.getElementById('files-upload-btn');
+        if (uploadBtn) {
+          uploadBtn.style.display = 'none';
         }
       });
   }

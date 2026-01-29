@@ -47,7 +47,12 @@ const CompanyService = (function() {
 
   /**
    * Update company settings
-   * This is a Promise-based method designed for future backend integration
+   * This is a Promise-based method designed for future backend integration.
+   * 
+   * NOTE: In mock mode, settings are only stored in memory via the ArticleService cache.
+   * Changes will be lost on page reload. In production, this will be a PUT request
+   * to the backend that persists the settings to a database.
+   * 
    * @param {string} companyId - The company ID
    * @param {CompanySettings} newSettings - The new settings object
    * @returns {Promise<{status: string, data: CompanySettings}>} Promise resolving to the update result

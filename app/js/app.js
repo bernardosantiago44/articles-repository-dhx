@@ -937,10 +937,10 @@ function refreshAppStateForSettings(newSettings) {
   // Clear CompanyService cache to ensure fresh data
   CompanyService.clearCache();
   
-  // Refresh Files tab upload button visibility for non-admin users
+  // Refresh upload button visibility for non-admin users
   if (UserService.isRegularUser()) {
-    updateFilesTabUploadButtonVisibility(newSettings);
-    updateImagesTabUploadButtonVisibility(newSettings);
+    updateUploadButtonVisibility('files-upload-btn', newSettings.allow_user_uploads);
+    updateUploadButtonVisibility('images-upload-btn', newSettings.allow_user_uploads);
   }
   
   // Re-initialize any views that depend on settings
@@ -949,34 +949,14 @@ function refreshAppStateForSettings(newSettings) {
 }
 
 /**
- * Update the Files tab upload button visibility based on settings
- * @param {CompanySettings} settings - Current company settings
+ * Update an upload button's visibility based on settings
+ * @param {string} buttonId - The ID of the button element
+ * @param {boolean} isVisible - Whether the button should be visible
  */
-function updateFilesTabUploadButtonVisibility(settings) {
-  const uploadBtn = document.getElementById('files-upload-btn');
+function updateUploadButtonVisibility(buttonId, isVisible) {
+  const uploadBtn = document.getElementById(buttonId);
   if (uploadBtn) {
-    if (settings.allow_user_uploads) {
-      uploadBtn.style.display = '';
-      uploadBtn.title = '';
-    } else {
-      uploadBtn.style.display = 'none';
-    }
-  }
-}
-
-/**
- * Update the Images tab upload button visibility based on settings
- * @param {CompanySettings} settings - Current company settings
- */
-function updateImagesTabUploadButtonVisibility(settings) {
-  const uploadBtn = document.getElementById('images-upload-btn');
-  if (uploadBtn) {
-    if (settings.allow_user_uploads) {
-      uploadBtn.style.display = '';
-      uploadBtn.title = '';
-    } else {
-      uploadBtn.style.display = 'none';
-    }
+    uploadBtn.style.display = isVisible ? '' : 'none';
   }
 }
 
