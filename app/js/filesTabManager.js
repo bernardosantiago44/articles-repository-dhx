@@ -49,6 +49,9 @@ const FilesTabManager = (function() {
     setTimeout(() => {
       setupTopSectionHandlers();
       loadFiles();
+      
+      // Apply permission-based visibility
+      applyUploadPermissions();
     }, 100);
     
     return {
@@ -56,6 +59,44 @@ const FilesTabManager = (function() {
       filesGrid,
       contentSection
     };
+  }
+  
+  /**
+   * Apply upload permissions based on company settings
+   * Hides/shows upload button for non-admin users
+   */
+  function applyUploadPermissions() {
+    // Admins always have full access
+    if (UserService.isAdministrator()) {
+      return;
+    }
+    
+    // Check if company is selected
+    if (!currentCompanyId) {
+      return;
+    }
+    
+    // For regular users, check company settings
+    CompanyService.canUsersUpload(currentCompanyId)
+      .then(function(canUpload) {
+        const uploadBtn = document.getElementById('files-upload-btn');
+        if (uploadBtn) {
+          if (canUpload) {
+            uploadBtn.style.display = '';
+          } else {
+            // Hide button for users without upload permission
+            uploadBtn.style.display = 'none';
+          }
+        }
+      })
+      .catch(function(error) {
+        console.error('Error checking upload permissions:', error);
+        // Default to hiding the button if there's an error
+        const uploadBtn = document.getElementById('files-upload-btn');
+        if (uploadBtn) {
+          uploadBtn.style.display = 'none';
+        }
+      });
   }
   
   /**

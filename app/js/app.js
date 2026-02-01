@@ -922,7 +922,38 @@ function openCompanySettingsForm() {
     return;
   }
   
-  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, () => {});
+  CompanyFormUI.openSettingsForm(appState.selectedCompanyId, (newSettings) => {
+    // Callback when settings are saved - refresh the current view to apply permission changes
+    refreshAppStateForSettings(newSettings);
+  });
+}
+
+/**
+ * Refresh app state when company settings change
+ * This ensures UI elements are shown/hidden based on new settings
+ * @param {CompanySettings} newSettings - The updated settings
+ */
+function refreshAppStateForSettings(newSettings) {
+  // Clear CompanyService cache to ensure fresh data
+  CompanyService.clearCache();
+  
+  // Refresh upload button visibility for non-admin users
+  if (UserService.isRegularUser()) {
+    updateUploadButtonVisibility('files-upload-btn', newSettings.allow_user_uploads);
+    updateUploadButtonVisibility('images-upload-btn', newSettings.allow_user_uploads);
+  }
+}
+
+/**
+ * Update an upload button's visibility based on settings
+ * @param {string} buttonId - The ID of the button element
+ * @param {boolean} isVisible - Whether the button should be visible
+ */
+function updateUploadButtonVisibility(buttonId, isVisible) {
+  const uploadBtn = document.getElementById(buttonId);
+  if (uploadBtn) {
+    uploadBtn.style.display = isVisible ? '' : 'none';
+  }
 }
 
 // ============================================================================
