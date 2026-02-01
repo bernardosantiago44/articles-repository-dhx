@@ -25,8 +25,8 @@ const CompanyFormUI = (function() {
         onSaveCallback: null,
     };
 
-    const FORM_WINDOW_WIDTH = 600;
-    const FORM_WINDOW_HEIGHT = 550;
+    const FORM_WINDOW_WIDTH = 900;
+    const FORM_WINDOW_HEIGHT = 850;
     
     /**
      * Settings configuration
