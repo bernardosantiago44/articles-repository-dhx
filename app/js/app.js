@@ -42,7 +42,10 @@ var appState = {
   statusCombo: null,         // Status filter combo
   startDateCalendar: null,   // Start date calendar
   endDateCalendar: null,     // End date calendar
-  selectedFilterTags: []     // Tags selected for filtering
+  selectedFilterTags: [],    // Tags selected for filtering
+  // View state for articles tab
+  currentArticlesView: 'grid',  // 'grid' or 'new-article'
+  articlesLayoutCache: null     // Cache for the articles layout when showing new article page
 };
 
 // ============================================================================
@@ -962,6 +965,7 @@ function updateUploadButtonVisibility(buttonId, isVisible) {
 
 /**
  * Open the form for creating a new article
+ * Navigates to the dedicated New Article page
  */
 function openNewArticleForm() {
   if (appState.currentUser.role !== 'admin') return;
@@ -974,7 +978,151 @@ function openNewArticleForm() {
     return;
   }
   
-  ArticleFormUI.openCreateForm(appState.selectedCompanyId, onArticleFormSaved);
+  // Get company name for display
+  ArticleService.getCompanyById(appState.selectedCompanyId)
+    .then(function(company) {
+      var companyName = company ? company.name : '';
+      
+      // Switch to new article page view
+      showNewArticlePage(companyName);
+    })
+    .catch(function(error) {
+      console.error('Error getting company name:', error);
+      // Still show the page even if company name fails
+      showNewArticlePage('');
+    });
+}
+
+/**
+ * Show the New Article page in the articles tab
+ * @param {string} companyName - Name of the company for display
+ */
+function showNewArticlePage(companyName) {
+  appState.currentArticlesView = 'new-article';
+  
+  // Hide header toolbar items
+  header_toolbar.hideItem('new_article');
+  header_toolbar.hideItem('edit_company');
+  
+  // Open the new article page in the articles tab cell
+  // This will replace the content in the articles tab
+  NewArticlePageUI.openPage(
+    articles,  // Use the articles tab cell
+    appState.selectedCompanyId,
+    companyName,
+    onNavigateBackFromNewArticle
+  );
+}
+
+/**
+ * Navigate back from new article page to the grid view
+ * @param {Object} [newArticleData] - Data of the newly created article (if any)
+ */
+function onNavigateBackFromNewArticle(newArticleData) {
+  appState.currentArticlesView = 'grid';
+  
+  // Close the new article page
+  NewArticlePageUI.closePage();
+  
+  // Show header toolbar items
+  header_toolbar.showItem('new_article');
+  header_toolbar.showItem('edit_company');
+  
+  // Rebuild the articles tab layout
+  rebuildArticlesTabLayout();
+  
+  // Reload articles for the current company to refresh the grid
+  loadArticlesForCompany(appState.selectedCompanyId)
+    .then(function() {
+      // If a new article was created, select it in the grid
+      if (newArticleData && newArticleData.id && appState.articlesGrid) {
+        appState.articlesGrid.selectRowById(newArticleData.id, false, true, true);
+        onArticleSelect(newArticleData.id);
+      }
+    })
+    .catch(function(error) {
+      console.error('Error refreshing grid after creating article:', error);
+    });
+}
+
+/**
+ * Rebuild the articles tab layout after returning from New Article page
+ * Re-creates the filters section, grid, toolbar, and sidebar
+ */
+function rebuildArticlesTabLayout() {
+  // Clear the grid reference before rebuilding
+  appState.articlesGrid = null;
+  
+  // Re-attach the articles layout to the articles tab
+  articles_layout = articles.attachLayout('2E');
+  
+  // Filters Section (Top)
+  filters_container = articles_layout.cells('a');
+  filters_container.setHeight(LAYOUT_CONFIG.FILTERS_SECTION_HEIGHT);
+  filters_container.hideHeader();
+  filters_container.fixSize(0, 1);
+  filters_container.setHeight(90);
+  
+  // Grid Section (Center) and Sidebar (Right)
+  grid_sidebar_layout = articles_layout.cells('b');
+  grid_sidebar_layout.hideHeader();
+  
+  // Grid Toolbar Area (various actions)
+  grid_toolbar = grid_sidebar_layout.attachToolbar();
+  grid_toolbar.setIconsPath('./wwwroot/Dhtmlx/codebase/imgs/');
+  grid_toolbar.addButton('clear_filters', 1, 'Limpiar Filtros');
+  grid_toolbar.addSeparator('sep_bulk', 2);
+  grid_toolbar.addButton('bulk_edit_tags', 3, 'Editar Etiquetas (Selección)');
+  grid_toolbar.addSeparator('sep_clear', 4);
+  grid_toolbar.addButton('manage_tags', 5, 'Administrar Etiquetas');
+  
+  grid_toolbar.setItemToolTip('manage_tags', 'Administrar las etiquetas de la empresa');
+  grid_toolbar.setItemToolTip('bulk_edit_tags', 'Editar etiquetas de los artículos seleccionados');
+  grid_toolbar.setItemToolTip('clear_filters', 'Limpiar todos los filtros');
+  
+  grid_toolbar.attachEvent('onClick', function(id) {
+    if (id === 'manage_tags') {
+      openTagManager();
+    } else if (id === 'bulk_edit_tags') {
+      openBulkTagEditor();
+    } else if (id === 'clear_filters') {
+      clearAllFilters();
+    }
+  });
+  
+  // Hide toolbar items for non-admin users
+  if (!UserService.isAdministrator()) {
+    grid_toolbar.hideItem('manage_tags');
+    grid_toolbar.hideItem('bulk_edit_tags');
+    grid_toolbar.hideItem('sep_bulk');
+  }
+  
+  // Split into grid and sidebar
+  grid_sidebar_split = grid_sidebar_layout.attachLayout('2U');
+  
+  // Grid Cell
+  grid_cell = grid_sidebar_split.cells('a');
+  grid_cell.hideHeader();
+  
+  // Sidebar Cell
+  sidebar_cell = grid_sidebar_split.cells('b');
+  sidebar_cell.setWidth(LAYOUT_CONFIG.SIDEBAR_WIDTH);
+  sidebar_cell.hideHeader();
+  sidebar_cell.setWidth(600);
+  sidebar_cell.fixSize(0, 0);
+  appState.sidebarCell = sidebar_cell;
+  
+  // Show empty state initially
+  sidebar_cell.attachHTMLString(ArticleDetailUI.renderEmptyState());
+  
+  // Recreate filters
+  if (UserService.isAdministrator()) {
+    ArticleService.getCompanies().then(function(companies) {
+      createGridFilters(companies);
+    });
+  } else {
+    createFilterFormForRegularUser();
+  }
 }
 
 /**
