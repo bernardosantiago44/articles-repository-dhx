@@ -109,7 +109,7 @@ const ArticleDetailUI = (function() {
    */
   function renderContentSection(sectionTitle, content) {
     const displayContent = content && content.trim() !== '' 
-      ? content 
+      ? '<div class="markdown-body">' + Utils.renderMarkdown(content) + '</div>'
       : '<em style="color: #8c8c8c;">No hay información disponible</em>';
     
     return `

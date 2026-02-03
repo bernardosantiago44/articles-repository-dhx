@@ -34,7 +34,8 @@ var ArticleFormUI = (function() {
     allFiles: [],               // All available files for the company
     imageSearchQuery: '',       // Current image search query
     fileSearchQuery: '',        // Current file search query
-    activeMediaTab: 'images'    // Active tab in media section: 'images' or 'files'
+    activeMediaTab: 'images',   // Active tab in media section: 'images' or 'files'
+    descriptionTab: 'write'     // Active tab in description editor: 'write' or 'preview'
   };
   
   /**
@@ -135,12 +136,85 @@ var ArticleFormUI = (function() {
             <label class="block text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">
               Descripción del artículo <span class="text-red-500">*</span>
             </label>
-            <textarea 
-              id="article-form-description"
-              rows="5"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              placeholder="Describe el artículo en detalle"
-            ></textarea>
+            <div class="border border-gray-300 rounded-md overflow-hidden bg-white">
+              <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50">
+                <div class="flex">
+                  <button
+                    id="article-form-description-tab-write"
+                    type="button"
+                    class="px-3 py-2 text-sm font-semibold text-gray-900 border-b-2 border-blue-500 bg-white"
+                  >
+                    Escribir
+                  </button>
+                  <button
+                    id="article-form-description-tab-preview"
+                    type="button"
+                    class="px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"
+                  >
+                    Vista previa
+                  </button>
+                </div>
+                <div class="flex items-center gap-1 px-2">
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="heading"
+                    title="Título"
+                  >H</button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="bold"
+                    title="Negrita"
+                  >B</button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="italic"
+                    title="Cursiva"
+                  >I</button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="list"
+                    title="Lista"
+                  >List</button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="link"
+                    title="Enlace"
+                  >Link</button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="code"
+                    title="Código"
+                  >Code</button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900"
+                    data-md-action="image"
+                    title="Imagen"
+                  >Image</button>
+                </div>
+              </div>
+              <div class="p-3 bg-white">
+                <textarea 
+                  id="article-form-description"
+                  rows="6"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                  placeholder="Describe el artículo en detalle"
+                ></textarea>
+                <div
+                  id="article-form-description-preview"
+                  class="hidden w-full min-h-[160px] rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 leading-relaxed"
+                ></div>
+              </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+              Soporta Markdown básico: **negrita**, _cursiva_, listas, enlaces y código.
+            </div>
           </div>
           
           <!-- External Link Field -->
@@ -404,6 +478,150 @@ var ArticleFormUI = (function() {
     var submitBtn = document.getElementById('article-form-submit-btn');
     if (submitBtn) {
       submitBtn.addEventListener('click', handleFormSubmit);
+    }
+
+    // Description markdown editor tabs
+    var descriptionWriteTab = document.getElementById('article-form-description-tab-write');
+    var descriptionPreviewTab = document.getElementById('article-form-description-tab-preview');
+    if (descriptionWriteTab) {
+      descriptionWriteTab.addEventListener('click', function() {
+        setDescriptionTab('write');
+      });
+    }
+    if (descriptionPreviewTab) {
+      descriptionPreviewTab.addEventListener('click', function() {
+        setDescriptionTab('preview');
+      });
+    }
+
+    // Description textarea live preview
+    var descriptionInput = document.getElementById('article-form-description');
+    if (descriptionInput) {
+      descriptionInput.addEventListener('input', Utils.debounce(function() {
+        if (formState.descriptionTab === 'preview') {
+          updateDescriptionPreview();
+        }
+      }, 200));
+    }
+
+    // Markdown toolbar actions
+    var markdownButtons = document.querySelectorAll('[data-md-action]');
+    if (markdownButtons && markdownButtons.length) {
+      markdownButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+          var action = button.getAttribute('data-md-action');
+          applyMarkdownAction(action);
+        });
+      });
+    }
+
+    // Initialize default description tab
+    setDescriptionTab(formState.descriptionTab || 'write');
+  }
+
+  /**
+   * Set active tab for markdown editor
+   * @param {string} tab - 'write' or 'preview'
+   */
+  function setDescriptionTab(tab) {
+    formState.descriptionTab = tab;
+    var writeTab = document.getElementById('article-form-description-tab-write');
+    var previewTab = document.getElementById('article-form-description-tab-preview');
+    var textarea = document.getElementById('article-form-description');
+    var preview = document.getElementById('article-form-description-preview');
+
+    if (!writeTab || !previewTab || !textarea || !preview) return;
+
+    if (tab === 'preview') {
+      writeTab.className = 'px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700';
+      previewTab.className = 'px-3 py-2 text-sm font-semibold text-gray-900 border-b-2 border-blue-500 bg-white';
+      textarea.classList.add('hidden');
+      preview.classList.remove('hidden');
+      updateDescriptionPreview();
+    } else {
+      writeTab.className = 'px-3 py-2 text-sm font-semibold text-gray-900 border-b-2 border-blue-500 bg-white';
+      previewTab.className = 'px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700';
+      preview.classList.add('hidden');
+      textarea.classList.remove('hidden');
+      textarea.focus();
+    }
+  }
+
+  /**
+   * Update markdown preview for description
+   */
+  function updateDescriptionPreview() {
+    var textarea = document.getElementById('article-form-description');
+    var preview = document.getElementById('article-form-description-preview');
+    if (!textarea || !preview) return;
+
+    var value = textarea.value || '';
+    if (!value.trim()) {
+      preview.innerHTML = '<em class="text-gray-400">Sin descripción</em>';
+      return;
+    }
+
+    preview.innerHTML = '<div class="markdown-body">' + Utils.renderMarkdown(value) + '</div>';
+  }
+
+  /**
+   * Apply markdown action to description textarea
+   * @param {string} action - Action name
+   */
+  function applyMarkdownAction(action) {
+    var textarea = document.getElementById('article-form-description');
+    if (!textarea) return;
+
+    var start = textarea.selectionStart || 0;
+    var end = textarea.selectionEnd || 0;
+    var selectedText = textarea.value.substring(start, end);
+
+    var before = textarea.value.substring(0, start);
+    var after = textarea.value.substring(end);
+    var newText = '';
+    var cursorStart = start;
+    var cursorEnd = end;
+
+    if (action === 'bold') {
+      newText = '**' + (selectedText || 'texto en negrita') + '**';
+      cursorStart = start + 2;
+      cursorEnd = start + newText.length - 2;
+    } else if (action === 'italic') {
+      newText = '_' + (selectedText || 'texto en cursiva') + '_';
+      cursorStart = start + 1;
+      cursorEnd = start + newText.length - 1;
+    } else if (action === 'heading') {
+      newText = '# ' + (selectedText || 'Titulo');
+      cursorStart = start + 2;
+      cursorEnd = start + newText.length;
+    } else if (action === 'list') {
+      newText = '- ' + (selectedText || 'Elemento de lista');
+      cursorStart = start + 2;
+      cursorEnd = start + newText.length;
+    } else if (action === 'link') {
+      newText = '[' + (selectedText || 'Texto del enlace') + '](https://)';
+      cursorStart = start + 1;
+      cursorEnd = start + (selectedText ? selectedText.length + 1 : 17);
+    } else if (action === 'code') {
+      newText = '`' + (selectedText || 'codigo') + '`';
+      cursorStart = start + 1;
+      cursorEnd = start + newText.length - 1;
+    } 
+    else if (action === 'image') {
+      newText = '![' + (selectedText || 'Texto alternativo') + '](https://)';
+      cursorStart = start + 2;
+      cursorEnd = start + (selectedText ? selectedText.length + 2 : 19);
+    } 
+    else {
+      return;
+    }
+
+    textarea.value = before + newText + after;
+    textarea.focus();
+    textarea.setSelectionRange(cursorStart, cursorEnd);
+
+    if (formState.descriptionTab === 'preview') {
+      updateDescriptionPreview();
     }
   }
   
@@ -1113,6 +1331,7 @@ var ArticleFormUI = (function() {
     formState.imageSearchQuery = '';
     formState.fileSearchQuery = '';
     formState.activeMediaTab = 'images';
+    formState.descriptionTab = 'write';
   }
   
   /**
@@ -1130,6 +1349,10 @@ var ArticleFormUI = (function() {
     if (descriptionInput) descriptionInput.value = articleData.description || '';
     if (externalLinkInput) externalLinkInput.value = articleData.externalLink || '';
     if (clientCommentsInput) clientCommentsInput.value = articleData.clientComments || '';
+
+    if (formState.descriptionTab === 'preview') {
+      updateDescriptionPreview();
+    }
     
     if (statusSelect && articleData.status) {
       statusSelect.value = articleData.status;
@@ -1163,6 +1386,7 @@ var ArticleFormUI = (function() {
     formState.imageSearchQuery = '';
     formState.fileSearchQuery = '';
     formState.activeMediaTab = 'images';
+    formState.descriptionTab = 'write';
     
     // Create window and form
     formState.articleWindow = createFormWindow('create', null);
@@ -1192,6 +1416,7 @@ var ArticleFormUI = (function() {
     formState.imageSearchQuery = '';
     formState.fileSearchQuery = '';
     formState.activeMediaTab = 'images';
+    formState.descriptionTab = 'write';
     
     // Load tags for the company and convert article tags to tag objects
     ArticleService.getTags(articleData.companyId)

@@ -67,12 +67,30 @@ const Utils = (function() {
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
   }
+
+  /**
+   * Render markdown to safe HTML (falls back to escaped text)
+   * @param {string} markdownText - Raw markdown text
+   * @returns {string} Safe HTML string
+   */
+  function renderMarkdown(markdownText) {
+    const rawText = markdownText || '';
+    if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+      const html = marked.parse(rawText, { breaks: true });
+      if (typeof DOMPurify !== 'undefined' && typeof DOMPurify.sanitize === 'function') {
+        return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+      }
+      return html;
+    }
+    return escapeHtml(rawText).replace(/\n/g, '<br>');
+  }
   
   // Public API
   return {
     escapeHtml,
     formatDate,
     getFileExtension,
-    debounce
+    debounce,
+    renderMarkdown
   };
 })();
