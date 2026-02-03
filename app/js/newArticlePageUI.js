@@ -127,7 +127,7 @@ var NewArticlePageUI = (function() {
         title: 'Cambios sin guardar',
         text: '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.',
         ok: 'Sí, salir',
-        cancel: 'Cancelar',
+        cancel: 'Permanecer',
         callback: function(result) {
           if (result) {
             onConfirm();

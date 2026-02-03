@@ -20,9 +20,14 @@ const FileUploadUI = (function() {
    * @param {Function} onUploadComplete - Callback function when upload completes
    */
   function openUploadModal(companyId, onUploadComplete) {
-    // Create DHTMLX Window
+    // Create DHTMLX Window - cleanup previous window if exists
     if (currentWindow) {
-      currentWindow.close();
+      try {
+        currentWindow.close();
+      } catch (e) {
+        // Window already closed, ignore
+      }
+      currentWindow = null;
     }
     
     currentWindow = new dhtmlXWindows();
