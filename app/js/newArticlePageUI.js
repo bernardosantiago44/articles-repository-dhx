@@ -273,10 +273,13 @@ var NewArticlePageUI = (function() {
                 <button type="button" id="new-article-desc-tab-preview" class="px-3 py-1 text-sm font-semibold text-gray-500 hover:text-gray-700">Vista previa</button>
               </div>
               <div class="flex items-center gap-1">
+                <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="heading" title="Encabezado">H</button>
                 <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="bold" title="Negrita">B</button>
                 <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="italic" title="Cursiva">I</button>
                 <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="list" title="Lista">List</button>
                 <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="link" title="Enlace">Link</button>
+                <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="code" title="Código">Code</button>
+                <button type="button" class="px-2 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900" data-md-action="image" title="Imagen">Image</button>
               </div>
             </div>
             <div class="p-3">
@@ -389,7 +392,6 @@ var NewArticlePageUI = (function() {
             <p class="text-xs text-gray-400 mt-1">JPG, PNG, WebP (Max 10MB)</p>
           </div>
           <input type="file" id="new-article-image-input" multiple accept="image/jpeg,image/png,image/webp,image/svg+xml" class="hidden" />
-
           <!-- Staged Images Grid -->
           <div id="new-article-staged-images" class="mt-3 grid grid-cols-3 gap-2">
             <!-- Images will be listed here -->
@@ -511,8 +513,9 @@ var NewArticlePageUI = (function() {
     var mdButtons = document.querySelectorAll('[data-md-action]');
     mdButtons.forEach(function(btn) {
       btn.addEventListener('click', function() {
-        var action = btn.getAttribute('data-md-action');
-        applyMarkdownAction(action);
+        const action = btn.getAttribute('data-md-action');
+        Utils.applyMarkdownActionToTextArea('new-article-description', action);
+        markFormDirty();
       });
     });
 
@@ -563,38 +566,6 @@ var NewArticlePageUI = (function() {
     }
 
     preview.innerHTML = '<div class="markdown-body">' + Utils.renderMarkdown(value) + '</div>';
-  }
-
-  /**
-   * Apply markdown action to description textarea
-   * @param {string} action - Action name
-   */
-  function applyMarkdownAction(action) {
-    var textarea = document.getElementById('new-article-description');
-    if (!textarea) return;
-
-    var start = textarea.selectionStart || 0;
-    var end = textarea.selectionEnd || 0;
-    var selectedText = textarea.value.substring(start, end);
-    var before = textarea.value.substring(0, start);
-    var after = textarea.value.substring(end);
-    var newText = '';
-
-    if (action === 'bold') {
-      newText = '**' + (selectedText || 'texto en negrita') + '**';
-    } else if (action === 'italic') {
-      newText = '_' + (selectedText || 'texto en cursiva') + '_';
-    } else if (action === 'list') {
-      newText = '- ' + (selectedText || 'Elemento de lista');
-    } else if (action === 'link') {
-      newText = '[' + (selectedText || 'Texto del enlace') + '](https://)';
-    } else {
-      return;
-    }
-
-    textarea.value = before + newText + after;
-    textarea.focus();
-    markFormDirty();
   }
 
   /**
