@@ -648,9 +648,9 @@ var NewArticlePageUI = (function() {
         continue;
       }
 
-      // Add to staged files
+      // Add to staged files with unique ID (Date.now + random to avoid collisions)
       pageState.stagedFiles.push({
-        id: 'staged-file-' + Date.now() + '-' + i,
+        id: 'staged-file-' + Date.now() + '-' + Math.floor(Math.random() * 10000) + '-' + i,
         file: file,
         name: file.name,
         size: file.size
@@ -786,10 +786,10 @@ var NewArticlePageUI = (function() {
         continue;
       }
 
-      // Create preview URL and add to staged images
+      // Create preview URL and add to staged images with unique ID
       var previewUrl = URL.createObjectURL(file);
       pageState.stagedImages.push({
-        id: 'staged-image-' + Date.now() + '-' + i,
+        id: 'staged-image-' + Date.now() + '-' + Math.floor(Math.random() * 10000) + '-' + i,
         file: file,
         name: file.name,
         size: file.size,
@@ -1084,6 +1084,8 @@ var NewArticlePageUI = (function() {
     pageState.canUserUpload = true;
 
     // Check company settings for upload permissions
+    // Note: Administrators can always upload regardless of company settings
+    // to ensure they maintain full control over content management
     CompanyService.canUsersUpload(companyId)
       .then(function(canUpload) {
         pageState.canUserUpload = UserService.isAdministrator() || canUpload;

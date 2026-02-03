@@ -1058,7 +1058,6 @@ function rebuildArticlesTabLayout() {
   
   // Filters Section (Top)
   filters_container = articles_layout.cells('a');
-  filters_container.setHeight(LAYOUT_CONFIG.FILTERS_SECTION_HEIGHT);
   filters_container.hideHeader();
   filters_container.fixSize(0, 1);
   filters_container.setHeight(90);
