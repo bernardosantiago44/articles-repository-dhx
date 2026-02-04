@@ -435,7 +435,7 @@ var NewArticlePageUI = (function() {
       <div class="h-full flex flex-col bg-gray-100">
         <!-- Main Content Area -->
         <div class="flex-1 overflow-y-auto p-6">
-          <div class="max-w-7xl mx-auto">
+          <div class="mx-auto">
             ${renderBreadcrumb()}
             ${renderMetadataHeader()}
             

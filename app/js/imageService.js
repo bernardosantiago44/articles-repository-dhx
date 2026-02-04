@@ -113,6 +113,21 @@ const ImageService = (function() {
       }, 500); // Simulate 0.5 second delete time
     });
   }
+
+  /**
+   * Returns the URLs of the selected images' IDs
+   * @param imageIds
+   * @return {Promise<{id: *, url: *}[]>}
+   */
+  function getImagesURLs(imageIds) {
+    return loadMockData().then(data => {
+      const images = data.images || [];
+      const urls = images
+        .filter(img => imageIds.includes(img.id))
+        .map(img => ({ id: img.id, url: img.thumbnail_url }));
+      return urls;
+    });
+  }
   
   /**
    * Delete multiple images at once
@@ -285,6 +300,7 @@ const ImageService = (function() {
     bulkDeleteImages,
     downloadImage,
     searchImages,
+    getImagesURLs,
     uploadImages
   };
 })();
