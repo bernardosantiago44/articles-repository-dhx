@@ -158,6 +158,14 @@ const ImagesTabManager = (function() {
               </svg>
               <span id="images-bulk-delete-text">Eliminar seleccionados</span>
             </button>
+
+            <!-- Bulk copy links button-->
+            <button
+              id="get-images-links-btn"
+              class="hidden px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 items-center space-x-2"
+            >
+            <span id="get-images-links-text">Copiar Enlaces</span>
+            </button>
             
             <!-- View Toggle -->
             <div class="flex items-center bg-gray-100 rounded-md p-1">
@@ -203,6 +211,7 @@ const ImagesTabManager = (function() {
     const viewListBtn = document.getElementById('images-view-list-btn');
     const masterCheckbox = document.getElementById('images-master-checkbox');
     const bulkDeleteBtn = document.getElementById('images-bulk-delete-btn');
+    const bulkCopyUrlsBtn = document.getElementById('get-images-links-btn');
     const uploadBtn = document.getElementById('images-upload-btn');
     
     // Search input
@@ -240,12 +249,33 @@ const ImagesTabManager = (function() {
       });
     }
     
+    // Bulk copy selected images urls
+    if (bulkCopyUrlsBtn) {
+      bulkCopyUrlsBtn.addEventListener('click', () => {
+        // TODO: Test over Https 
+        bulkCopyImagesUrls();
+      })
+    }
+    
     // Upload button
     if (uploadBtn) {
       uploadBtn.addEventListener('click', () => {
         openUploadModal();
       });
     }
+  }
+  
+  function bulkCopyImagesUrls() {
+    ImageService.getImagesURLs(selectedImageIds)
+        .then(response => {
+          const imagesLinksMarkdown = response
+              .map(image => {
+                return `![Imagen](${image.url})`;
+              })
+              .join('\n');
+          navigator.clipboard.writeText(imagesLinksMarkdown).catch();
+        });
+    
   }
   
   /**
@@ -297,6 +327,8 @@ const ImagesTabManager = (function() {
     const masterCheckbox = document.getElementById('images-master-checkbox');
     const bulkDeleteBtn = document.getElementById('images-bulk-delete-btn');
     const bulkDeleteText = document.getElementById('images-bulk-delete-text');
+    const bulkCopyUrlsBtn = document.getElementById('get-images-links-btn');
+    const bulkCopyUrlsText = document.getElementById('get-images-links-text');
     
     const selectedCount = selectedImageIds.length;
     const totalCount = currentImages.length;
@@ -326,6 +358,19 @@ const ImagesTabManager = (function() {
       } else {
         bulkDeleteBtn.classList.add('hidden');
         bulkDeleteBtn.classList.remove('flex');
+      }
+    }
+    
+    if (bulkCopyUrlsBtn) {
+      if (selectedCount > 0) {
+        bulkCopyUrlsBtn.classList.remove('hidden');
+        bulkCopyUrlsBtn.classList.add('flex');
+        if (bulkCopyUrlsText) {
+          bulkCopyUrlsText.textContent = `Copiar enlaces (${selectedCount})`;
+        }
+      } else {
+        bulkCopyUrlsBtn.classList.add('hidden');
+        bulkCopyUrlsBtn.classList.remove('flex');
       }
     }
     

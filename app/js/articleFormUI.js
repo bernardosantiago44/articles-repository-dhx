@@ -510,7 +510,7 @@ var ArticleFormUI = (function() {
       markdownButtons.forEach(function(button) {
         button.addEventListener('click', function() {
           var action = button.getAttribute('data-md-action');
-          applyMarkdownAction(action);
+          Utils.applyMarkdownActionToTextArea('article-form-description', action);
         });
       });
     }
@@ -562,67 +562,6 @@ var ArticleFormUI = (function() {
     }
 
     preview.innerHTML = '<div class="markdown-body">' + Utils.renderMarkdown(value) + '</div>';
-  }
-
-  /**
-   * Apply markdown action to description textarea
-   * @param {string} action - Action name
-   */
-  function applyMarkdownAction(action) {
-    var textarea = document.getElementById('article-form-description');
-    if (!textarea) return;
-
-    var start = textarea.selectionStart || 0;
-    var end = textarea.selectionEnd || 0;
-    var selectedText = textarea.value.substring(start, end);
-
-    var before = textarea.value.substring(0, start);
-    var after = textarea.value.substring(end);
-    var newText = '';
-    var cursorStart = start;
-    var cursorEnd = end;
-
-    if (action === 'bold') {
-      newText = '**' + (selectedText || 'texto en negrita') + '**';
-      cursorStart = start + 2;
-      cursorEnd = start + newText.length - 2;
-    } else if (action === 'italic') {
-      newText = '_' + (selectedText || 'texto en cursiva') + '_';
-      cursorStart = start + 1;
-      cursorEnd = start + newText.length - 1;
-    } else if (action === 'heading') {
-      newText = '# ' + (selectedText || 'Titulo');
-      cursorStart = start + 2;
-      cursorEnd = start + newText.length;
-    } else if (action === 'list') {
-      newText = '- ' + (selectedText || 'Elemento de lista');
-      cursorStart = start + 2;
-      cursorEnd = start + newText.length;
-    } else if (action === 'link') {
-      newText = '[' + (selectedText || 'Texto del enlace') + '](https://)';
-      cursorStart = start + 1;
-      cursorEnd = start + (selectedText ? selectedText.length + 1 : 17);
-    } else if (action === 'code') {
-      newText = '`' + (selectedText || 'codigo') + '`';
-      cursorStart = start + 1;
-      cursorEnd = start + newText.length - 1;
-    } 
-    else if (action === 'image') {
-      newText = '![' + (selectedText || 'Texto alternativo') + '](https://)';
-      cursorStart = start + 2;
-      cursorEnd = start + (selectedText ? selectedText.length + 2 : 19);
-    } 
-    else {
-      return;
-    }
-
-    textarea.value = before + newText + after;
-    textarea.focus();
-    textarea.setSelectionRange(cursorStart, cursorEnd);
-
-    if (formState.descriptionTab === 'preview') {
-      updateDescriptionPreview();
-    }
   }
   
   /**
